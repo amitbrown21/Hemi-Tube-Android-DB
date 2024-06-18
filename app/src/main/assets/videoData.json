@@ -1,0 +1,302 @@
+[
+  {
+    "id": 1,
+    "url": "daniel.mp4",
+    "title": "Funny Video",
+    "ownerId": 7,
+    "date": "12/04/20",
+    "views": "150000",
+    "likes": "1305",
+    "dislikes": "305",
+    "thumbnail": "/daniel.jpg",
+    "description": "My Description",
+    "duration": "00:10",
+    "comments": [
+      {
+        "id": 1,
+        "username": "pretzel",
+        "body": "Great video! Very funny!"
+      },
+      {
+        "id": 2,
+        "username": "award",
+        "body": "Hilarious! Had a good laugh."
+      },
+      {
+        "id": 3,
+        "username": "hop",
+        "body": "Loved it! Keep it up."
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "url": "ad.mp4",
+    "title": "Title of the video aa",
+    "ownerId": 5,
+    "date": "12/03/20",
+    "views": "160000",
+    "likes": "37",
+    "dislikes": "73",
+    "thumbnail": "/ad.jpg",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis quis risus eget urna aliquet lacinia eget ut nisi. Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam quis risus eget urna mollis ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet",
+    "duration": "00:10",
+    "comments": [
+      {
+        "id": 1,
+        "username": "pretzel",
+        "body": "Great video! Very informative."
+      },
+      {
+        "id": 2,
+        "username": "hop",
+        "body": "Nice job! Very well made."
+      },
+      {
+        "id": 3,
+        "username": "award",
+        "body": "Interesting content, well done!"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "url": "sunset.mp4",
+    "title": "Burning Sunset: Nature's Canvas",
+    "ownerId": 6,
+    "date": "08/15/21",
+    "views": "987654",
+    "likes": "12",
+    "dislikes": "243",
+    "thumbnail": "/sunset.jpg",
+    "description": "Witness the breathtaking beauty of a sunset over the sea, where the sky transforms into a canvas of vibrant oranges, pinks, and purples. This 10-second clip captures the serene moment when the sun dips below the horizon, casting a warm glow across the tranquil waters.",
+    "duration": "00:10",
+    "comments": [
+      {
+        "id": 1,
+        "username": "award",
+        "body": "Beautiful video! Loved the colors."
+      },
+      {
+        "id": 2,
+        "username": "pretzel",
+        "body": "Amazing sunset, great capture!"
+      },
+      {
+        "id": 3,
+        "username": "hop",
+        "body": "So serene and peaceful. Great job!"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "url": "coke.mp4",
+    "title": "Refreshing Moment: Classic Cola Ad",
+    "ownerId": 5,
+    "views": "3256789",
+    "likes": "76",
+    "dislikes": "38",
+    "date": "11/29/22",
+    "thumbnail": "/coke.jpg",
+    "description": "Experience the timeless appeal of a classic Coca-Cola commercial in just 10 seconds. This vintage ad captures the essence of refreshment, showcasing the iconic bottle, the satisfying fizz, and the pure enjoyment of that first sip.",
+    "duration": "00:10",
+    "comments": [
+      {
+        "id": 1,
+        "username": "hop",
+        "body": "Classic and refreshing! Great ad."
+      },
+      {
+        "id": 2,
+        "username": "award",
+        "body": "Brought back memories. Well done!"
+      },
+      {
+        "id": 3,
+        "username": "pretzel",
+        "body": "Perfectly captures the essence of Coke!"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "url": "milky.mp4",
+    "title": "Celestial Symphony: Milky Way's Ascent",
+    "ownerId": 6,
+    "date": "06/22/23",
+    "views": "2345678",
+    "likes": "45",
+    "dislikes": "13",
+    "thumbnail": "/milky.jpg",
+    "description": "In this mesmerizing time-lapse, witness the grandeur of our galactic home, the Milky Way, as it gracefully rises in the night sky. This 10-second clip offers a glimpse into the cosmic ballet, revealing millions of stars painting a luminous arc across the heavens.",
+    "duration": "00:10",
+    "comments": [
+      {
+        "id": 1,
+        "username": "pretzel",
+        "body": "Stunning! The Milky Way looks incredible."
+      },
+      {
+        "id": 2,
+        "username": "award",
+        "body": "Amazing time-lapse, well done!"
+      },
+      {
+        "id": 3,
+        "username": "hop",
+        "body": "Beautifully captured. Loved it!"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "url": "doggo.mp4",
+    "title": "2D Test Animation: A Quick Study",
+    "ownerId": 7,
+    "date": "03/15/24",
+    "views": "876543",
+    "likes": "28000",
+    "dislikes": "4320",
+    "thumbnail": "/doggo.jpg",
+    "description": "Dive into the world of 2D animation with this concise 10-second test. Watch as lines, shapes, and colors come to life, demonstrating fundamental animation principles. This snippet showcases timing, spacing, and movement, offering insights into the animator's process.",
+    "duration": "00:10",
+    "comments": [
+      {
+        "id": 1,
+        "username": "hop",
+        "body": "Great animation test. Very smooth!"
+      },
+      {
+        "id": 2,
+        "username": "award",
+        "body": "Impressive work, keep it up!"
+      },
+      {
+        "id": 3,
+        "username": "pretzel",
+        "body": "Loved the animation principles shown."
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "url": "countdown.mp4",
+    "title": "Epic 10-Second Countdown",
+    "ownerId": 5,
+    "date": "09/30/23",
+    "views": "4567890",
+    "likes": "65000",
+    "dislikes": "3000",
+    "thumbnail": "/countdown.jpg",
+    "description": "Experience the thrill of anticipation with this heart-pounding 10-second countdown. Featuring a dynamic voice-over and an adrenaline-pumping intro track, this countdown sets the stage for any grand reveal or epic event. Perfect for live streams, event intros, or any moment that demands heightened excitement.",
+    "duration": "00:10",
+    "comments": [
+      {
+        "id": 1,
+        "username": "pretzel",
+        "body": "Loved the energy in this countdown!"
+      },
+      {
+        "id": 2,
+        "username": "award",
+        "body": "Perfect for event intros. Great job!"
+      },
+      {
+        "id": 3,
+        "username": "hop",
+        "body": "Really exciting countdown. Well made!"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "url": "loop.mp4",
+    "title": "Seamless 10-Second Loop",
+    "ownerId": 6,
+    "views": "732145",
+    "date": "11/11/23",
+    "likes": "18000",
+    "dislikes": "2310",
+    "thumbnail": "/loop.jpg",
+    "description": "Behold the art of the perfect loop in this mesmerizing 10-second video. Meticulously crafted to transition seamlessly from end to start, this loop creates an infinite, continuous motion. Whether used as a live stream background, a loading screen, or a visual meditation, it's a testament to precision in editing.",
+    "duration": "00:10",
+    "comments": [
+      {
+        "id": 1,
+        "username": "hop",
+        "body": "Perfectly seamless loop. Great job!"
+      },
+      {
+        "id": 2,
+        "username": "pretzel",
+        "body": "Amazing loop, very satisfying to watch."
+      },
+      {
+        "id": 3,
+        "username": "award",
+        "body": "Excellent editing. Loved it!"
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "url": "doc.mp4",
+    "title": "10 Seconds of Pure Comedy Gold",
+    "ownerId": 7,
+    "date": "05/01/22",
+    "views": "15789012",
+    "likes": "982000",
+    "dislikes": "5600",
+    "thumbnail": "/doc.jpg",
+    "description": "Prepare for the most concentrated dose of hilarity ever squeezed into 10 seconds! This viral clip has taken the internet by storm, leaving viewers in stitches with its perfect comedic timing, unexpected twist, and universal humor. Critics hail it as a masterpiece of modern comedy.",
+    "duration": "00:10",
+    "comments": [
+      {
+        "id": 1,
+        "username": "pretzel",
+        "body": "Absolutely hilarious! Loved it."
+      },
+      {
+        "id": 2,
+        "username": "hop",
+        "body": "Great timing, very funny!"
+      },
+      {
+        "id": 3,
+        "username": "award",
+        "body": "Pure comedy gold indeed. Well done!"
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "url": "pizza.mp4",
+    "title": "Sizzling Delight: 10-Sec Pizza Quesadilla",
+    "ownerId": 5,
+    "date": "07/15/23",
+    "views": "12",
+    "likes": "231000",
+    "dislikes": "3400",
+    "thumbnail": "/pizza.jpg",
+    "description": "In just 10 seconds, witness the mouthwatering magic of grilled pizza quesadillas. This quick clip shows gooey cheese melting between crispy tortillas, infused with zesty pizza toppings. It's a fusion dish that's fast, fun, and undeniably delicious—perfect for busy food lovers!",
+    "duration": "00:10",
+    "comments": [
+      {
+        "id": 1,
+        "username": "hop",
+        "body": "Looks delicious! Great recipe."
+      },
+      {
+        "id": 2,
+        "username": "award",
+        "body": "Mouthwatering! Can't wait to try it."
+      },
+      {
+        "id": 3,
+        "username": "pretzel",
+        "body": "Yummy! Perfect for a quick meal."
+      }
+    ]
+  }
+]

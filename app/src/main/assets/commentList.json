@@ -1,0 +1,32 @@
+{
+"comments": [
+  {
+    "id": 1,
+    "videoId": 1,
+    "username": "username 1",
+    "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis quis risus eget urna aliquet lacinia eget ut nisi. Cras mattis consectetur purus sit amet fermentum.",
+    "timestamp": "time"
+  },
+  {
+    "id": 2,
+    "videoId": 1,
+    "username": "username 2",
+    "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis quis risus eget urna aliquet lacinia eget ut nisi. Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus.",
+    "timestamp": "time"
+  },
+  {
+    "id": 3,
+    "videoId": 1,
+    "username": "username 3",
+    "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis quis risus eget urna aliquet lacinia eget ut nisi. Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam quis risus eget urna mollis ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet",
+    "timestamp": "time"
+  },
+  {
+    "id": 4,
+    "videoId": 1,
+    "username": "username 4",
+    "body": "comment 4",
+    "timestamp": "time"
+  }
+]
+}

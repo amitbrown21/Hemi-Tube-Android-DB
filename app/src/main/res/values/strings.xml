@@ -1,0 +1,59 @@
+<resources>
+    <string name="app_name">Hemi-Tube</string>
+    <string name="title_home">Home\n</string>
+    <string name="title_sub">Subscriptions</string>
+    <string name="title_user">User\n</string>
+    <string name="share">Share</string>
+    <string name="subscribe">Subscribe</string>
+    <string name="dislike_button">dislike button</string>
+    <string name="like_button">like button</string>
+    <string name="likes_number">0</string>
+    <string name="owner_data">owner data</string>
+    <string name="title_and_data">Video Title</string>
+    <string name="views_and_date">views and date</string>
+    <string name="user_avatar">user_avatar</string>
+    <string name="owner_name">Owner Name</string>
+    <string name="subscribers">subs</string>
+    <string name="commenter_username">comment_username</string>
+    <string name="go_to_watch_page">go to watch page</string>
+    <string name="body_of_comment">body of comment</string>
+    <string name="avatar">avatar</string>
+    <string name="video_title">Video title</string>
+    <string name="metadata">metaData</string>
+    <string name="profilePicture">profilePicture</string>
+    <string name="open_comments">Comments</string>
+    <string name="show_recommendations">Recommendations</string>
+    <string name="thumbnail">thumbnail</string>
+    <string name="comment_text_field">Add a comment...</string>
+    <string name="send_comment">send comment</string>
+    <string name="comments">Comments</string>
+    <string name="search">Search</string>
+    <string name="no_videos_matched">No videos matched</string>
+    <string name="create_a_new_account">Create a new account</string>
+    <string name="or_else">Or else...</string>
+    <string name="first_name">First name</string>
+    <string name="last_name">Last name</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="your_password_must_be_8_20_characters_long_and_contain_both_and_only_english_letters_and_numbers">Your password must be 8-20 characters long, and contain both (and only) English letters and Numbers.</string>
+    <string name="password_confirmation">Password confirmation</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="other">Other</string>
+    <string name="select_profile_image">Select Profile Image</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="rather_not_say">Rather not say</string>
+    <string name="description">Description</string>
+    <string name="editButton">Edit</string>
+    <string name="deleteButton">Delete</string>
+    <string name="select_video">Select Video</string>
+    <string name="upload_description">Description</string>
+    <string name="select_thumbnail">Select Thumbnail</string>
+    <string name="upload">Upload</string>
+    <string name="sign_in">Sign In</string>
+    <string name="edit">Edit</string>
+    <string-array name="video_list">
+        <item>milky</item>
+    </string-array>
+</resources>
+

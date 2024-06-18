@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "firstName": "first name",
+    "lastName": "last name",
+    "username": "username",
+    "password": "password",
+    "gender": "male",
+    "profilePicture": "assets/icons/exclude.svg",
+    "subscribers": "100000"
+  },
+  {
+    "id": 2,
+    "firstName": "first name 2",
+    "lastName": "last name 2",
+    "username": "username 2",
+    "password": "password 2",
+    "gender": "female",
+    "profilePicture": "assets/icons/exclude.svg",
+    "subscribers": "200000"
+  },
+  {
+    "id": 3,
+    "firstName": "admin",
+    "lastName": "admin",
+    "username": "admin",
+    "password": "admin",
+    "gender": "admin",
+    "profilePicture": "assets/icons/browser-edge.svg",
+    "subscribers": "300000"
+  },
+  {
+    "id": 4,
+    "firstName": "Empty User",
+    "lastName": "Empty User",
+    "username": "",
+    "password": "",
+    "gender": "",
+    "profilePicture": "assets/icons/notLoggedIn.svg",
+    "subscribers": "0"
+  },
+  {
+    "id": 5,
+    "firstName": "Unicorn",
+    "lastName": "Iron",
+    "username": "unicorn",
+    "password": "password123",
+    "gender": "male",
+    "profilePicture": "/unicorn.png",
+    "subscribers": "500"
+  },
+  {
+    "id": 6,
+    "firstName": "Award",
+    "lastName": "Winner",
+    "username": "award",
+    "password": "password123",
+    "gender": "female",
+    "profilePicture": "/award.png",
+    "subscribers": "750"
+  },
+  {
+    "id": 7,
+    "firstName": "Enneagram",
+    "lastName": "Expert",
+    "username": "enneagram",
+    "password": "password123",
+    "gender": "male",
+    "profilePicture": "/enneagram.png",
+    "subscribers": "1000"
+  },
+  {
+    "id": 8,
+    "firstName": "hop",
+    "lastName": "Expert",
+    "username": "hop",
+    "password": "password123",
+    "gender": "male",
+    "profilePicture": "/hop.png",
+    "subscribers": "1000"
+  },
+  {
+    "id": 9,
+    "firstName": "award",
+    "lastName": "Expert",
+    "username": "award",
+    "password": "password123",
+    "gender": "male",
+    "profilePicture": "/award.png",
+    "subscribers": "1000"
+  },
+  {
+    "id": 10,
+    "firstName": "pretzel",
+    "lastName": "Expert",
+    "username": "pretzel",
+    "password": "password123",
+    "gender": "male",
+    "profilePicture": "/pretzel.png",
+    "subscribers": "1000"
+  }
+]

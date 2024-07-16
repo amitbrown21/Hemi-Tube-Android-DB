@@ -1,27 +1,28 @@
 package com.example.hemi_tube;
 
+import android.graphics.Outline;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewOutlineProvider;
+import android.widget.ImageView;
+import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
-import android.widget.TextView;
-
-import com.example.hemi_tube.entities.User;
-import com.example.hemi_tube.entities.Video;
-import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.dao.UserDao;
 import com.example.hemi_tube.dao.VideoDao;
-
-import de.hdodenhof.circleimageview.CircleImageView;
+import com.example.hemi_tube.database.AppDatabase;
+import com.example.hemi_tube.entities.User;
+import com.example.hemi_tube.entities.Video;
 
 import java.util.List;
 
 public class ChannelActivity extends AppCompatActivity {
 
-    private CircleImageView profileImage;
+    private ImageView profileImage;
     private TextView usernameText;
     private TextView subscribersText;
     private RecyclerView videosRecyclerView;
@@ -39,6 +40,15 @@ public class ChannelActivity extends AppCompatActivity {
         setContentView(R.layout.activity_channel);
 
         profileImage = findViewById(R.id.profileImage);
+
+        // Make the ImageView circular
+        profileImage.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setOval(0, 0, view.getWidth(), view.getHeight());
+            }
+        });
+        profileImage.setClipToOutline(true);
         usernameText = findViewById(R.id.usernameText);
         subscribersText = findViewById(R.id.subscribersText);
         videosRecyclerView = findViewById(R.id.videosRecyclerView);

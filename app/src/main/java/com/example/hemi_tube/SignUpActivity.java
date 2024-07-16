@@ -14,9 +14,12 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.hemi_tube.database.AppDatabase;
+import com.example.hemi_tube.dao.UserDao;
 import com.example.hemi_tube.entities.User;
 
-import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SignUpActivity extends AppCompatActivity {
     private static final int PICK_PROFILE_IMAGE_REQUEST = 1;
@@ -31,16 +34,18 @@ public class SignUpActivity extends AppCompatActivity {
     private Uri profileImageUri;
     private ImageButton selectImageButton;
 
-    private ArrayList<User> users;
+    private AppDatabase database;
+    private UserDao userDao;
+    private ExecutorService executorService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
-        // Receive users from the intent
-        Intent intent = getIntent();
-        users = (ArrayList<User>) intent.getSerializableExtra("users");
+        database = AppDatabase.getInstance(this);
+        userDao = database.userDao();
+        executorService = Executors.newSingleThreadExecutor();
 
         firstNameEditText = findViewById(R.id.firstNameEditText);
         lastNameEditText = findViewById(R.id.lastNameEditText);
@@ -72,15 +77,29 @@ public class SignUpActivity extends AppCompatActivity {
                 Toast.makeText(SignUpActivity.this, "Password must be 8-20 characters long and contain only English letters and numbers", Toast.LENGTH_SHORT).show();
             } else {
                 String profilePictureUri = (profileImageUri != null) ? profileImageUri.toString() : "drawable/placeholder";
-                User newUser = new User(users.size() + 1, firstName, lastName, username, password, gender, profilePictureUri, 0);
-                users.add(newUser);
+                User newUser = new User(0, firstName, lastName, username, password, gender, profilePictureUri, 0);
+                insertUser(newUser);
+            }
+        });
+    }
 
-                // Pass the updated user list back to MainActivity
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra("users", users);
-                resultIntent.putExtra("currentUser", newUser); // Pass the new user back
-                setResult(RESULT_OK, resultIntent);
-                finish();
+    private void insertUser(User user) {
+        executorService.execute(() -> {
+            // Check if username already exists
+            if (userDao.isUsernameExists(user.getUsername())) {
+                runOnUiThread(() -> Toast.makeText(SignUpActivity.this, "Username already exists", Toast.LENGTH_SHORT).show());
+            } else {
+                runOnUiThread(() -> {
+                    Toast.makeText(SignUpActivity.this, "User created successfully", Toast.LENGTH_SHORT).show();
+
+                    // Create an intent to return to MainActivity
+                    Intent mainIntent = new Intent(SignUpActivity.this, MainActivity.class);
+                    mainIntent.putExtra("currentUser", user);
+                    mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                    startActivity(mainIntent);
+                    finish();
+                });
             }
         });
     }
@@ -108,5 +127,11 @@ public class SignUpActivity extends AppCompatActivity {
         // Password must be 8-20 characters long and contain only English letters and numbers
         String passwordPattern = "^[a-zA-Z0-9]{8,20}$";
         return password.matches(passwordPattern);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executorService.shutdown();
     }
 }

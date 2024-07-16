@@ -29,7 +29,8 @@ android {
 }
 
 dependencies {
-    implementation (libs.circleimageview)
+    implementation("de.hdodenhof:circleimageview:3.1.0")  // Added CircleImageView dependency
+    implementation(libs.circleimageview)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

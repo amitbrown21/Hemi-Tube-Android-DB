@@ -14,17 +14,21 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.hemi_tube.database.AppDatabase;
+import com.example.hemi_tube.dao.UserDao;
 import com.example.hemi_tube.entities.User;
 
-import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LogInActivity extends AppCompatActivity {
     private EditText usernameEditText;
     private EditText passwordEditText;
     private Button signInButton;
     private Button signUpButton;
-    private ArrayList<User> users;
+    private AppDatabase database;
+    private UserDao userDao;
+    private ExecutorService executorService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,9 +46,9 @@ public class LogInActivity extends AppCompatActivity {
         signInButton = findViewById(R.id.signInButton);
         signUpButton = findViewById(R.id.signUpButton);
 
-        // Get users from the intent
-        Intent intent = getIntent();
-        users = (ArrayList<User>) intent.getSerializableExtra("users");
+        database = AppDatabase.getInstance(this);
+        userDao = database.userDao();
+        executorService = Executors.newSingleThreadExecutor();
 
         signInButton.setOnClickListener(v -> {
             String username = usernameEditText.getText().toString();
@@ -53,35 +57,31 @@ public class LogInActivity extends AppCompatActivity {
             if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(LogInActivity.this, "Please fill out all fields", Toast.LENGTH_SHORT).show();
             } else {
-                User currentUser = validateUser(username, password);
-                if (currentUser != null) {
-                    Toast.makeText(LogInActivity.this, "Sign in successful", Toast.LENGTH_SHORT).show();
-                    // Return to the main activity
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("currentUser", currentUser);
-                    resultIntent.putExtra("users", (Serializable) users);
-                    setResult(RESULT_OK, resultIntent);
-                    finish();
-                } else {
-                    Toast.makeText(LogInActivity.this, "Invalid username or password", Toast.LENGTH_SHORT).show();
-                }
+                validateUser(username, password);
             }
         });
 
         signUpButton.setOnClickListener(v -> {
             Intent signUpIntent = new Intent(LogInActivity.this, SignUpActivity.class);
-            signUpIntent.putExtra("users", (Serializable) users);
             startActivityForResult(signUpIntent, 1);
         });
     }
 
-    private User validateUser(String username, String password) {
-        for (User user : users) {
-            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
-                return user;
-            }
-        }
-        return null;
+    private void validateUser(String username, String password) {
+        executorService.execute(() -> {
+            User currentUser = userDao.getUserForLogin(username, password);
+            runOnUiThread(() -> {
+                if (currentUser != null) {
+                    Toast.makeText(LogInActivity.this, "Sign in successful", Toast.LENGTH_SHORT).show();
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("currentUser", currentUser);
+                    setResult(RESULT_OK, resultIntent);
+                    finish();
+                } else {
+                    Toast.makeText(LogInActivity.this, "Invalid username or password", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
     }
 
     @Override
@@ -89,9 +89,17 @@ public class LogInActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
             if (requestCode == 1) {
-                users = (ArrayList<User>) data.getSerializableExtra("users");
-                Log.d("LogInActivity", "onActivityResult: Updated users: " + users.toString());
+                User newUser = (User) data.getSerializableExtra("newUser");
+                if (newUser != null) {
+                    Log.d("LogInActivity", "onActivityResult: New user created: " + newUser.toString());
+                }
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executorService.shutdown();
     }
 }

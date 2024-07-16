@@ -14,11 +14,15 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.hemi_tube.database.AppDatabase;
+import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 
-import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class UploadVideoActivity extends AppCompatActivity {
 
@@ -34,8 +38,10 @@ public class UploadVideoActivity extends AppCompatActivity {
     private Uri videoUri;
     private Uri thumbnailUri;
 
-    private ArrayList<Video> videos;
     private User currentUser;
+    private AppDatabase database;
+    private VideoDao videoDao;
+    private ExecutorService executorService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,9 +54,13 @@ public class UploadVideoActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Receive videos and currentUser from the intent
+        // Initialize database, DAO, and executor
+        database = AppDatabase.getInstance(this);
+        videoDao = database.videoDao();
+        executorService = Executors.newSingleThreadExecutor();
+
+        // Receive currentUser from the intent
         Intent intent = getIntent();
-        videos = (ArrayList<Video>) intent.getSerializableExtra("videos");
         currentUser = (User) intent.getSerializableExtra("currentUser");
 
         title = findViewById(R.id.title);
@@ -80,11 +90,9 @@ public class UploadVideoActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && data != null) {
             if (requestCode == PICK_VIDEO_REQUEST) {
                 videoUri = data.getData();
-                // Grant URI permission
                 grantUriPermission(getPackageName(), videoUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             } else if (requestCode == PICK_THUMBNAIL_REQUEST) {
                 thumbnailUri = data.getData();
-                // Grant URI permission
                 grantUriPermission(getPackageName(), thumbnailUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
         }
@@ -100,29 +108,42 @@ public class UploadVideoActivity extends AppCompatActivity {
             Toast.makeText(this, "Please Sign in to upload a video", Toast.LENGTH_SHORT).show();
         } else {
             Video newVideo = new Video(
-                    videos.size() + 1,
+                    0, // ID will be auto-generated
                     videoUri.toString(),
                     videoTitle,
                     currentUser.getId(),
-                    "today",
+                    new Date().toString(), // Current date
                     0, // Initial views
                     0, // Initial likes
                     0, // Initial dislikes
                     thumbnailUri.toString(),
                     videoDescription,
-                    "00:00", // Need to change later if possible
+                    "00:00", // Duration placeholder
                     new ArrayList<>() // Initialize comments list
             );
 
-            videos.add(newVideo);
-
-            Toast.makeText(this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
-
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("videos", videos);
-            setResult(RESULT_OK, resultIntent);
-
-            finish();
+            insertVideo(newVideo);
         }
+    }
+
+    private void insertVideo(Video video) {
+        executorService.execute(() -> {
+            long videoId = videoDao.insert(video);
+            runOnUiThread(() -> {
+                if (videoId > 0) {
+                    Toast.makeText(this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
+                    setResult(RESULT_OK);
+                    finish();
+                } else {
+                    Toast.makeText(this, "Failed to upload video", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executorService.shutdown();
     }
 }

@@ -29,14 +29,17 @@ android {
 }
 
 dependencies {
-
+    implementation (libs.circleimageview)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.swiperefreshlayout)
+    implementation(libs.room.common)
+    implementation(libs.room.runtime)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("com.google.code.gson:gson:2.10.1")
+    annotationProcessor(libs.room.compiler)
 }

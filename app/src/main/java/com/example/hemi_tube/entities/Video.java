@@ -1,12 +1,17 @@
 package com.example.hemi_tube.entities;
 
 import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity(tableName = "videos")
 public class Video implements Serializable, Cloneable {
+    @PrimaryKey(autoGenerate = true)
     private int id;
     private String url;
     private String title;
@@ -18,6 +23,7 @@ public class Video implements Serializable, Cloneable {
     private String thumbnail;
     private String description;
     private String duration;
+    @Ignore
     private List<CommentObj> comments;
 
 

@@ -3,7 +3,7 @@ package com.example.hemi_tube;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -14,8 +14,8 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.dao.UserDao;
+import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.entities.User;
 
 import java.util.concurrent.ExecutorService;
@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 
 public class SignUpActivity extends AppCompatActivity {
     private static final int PICK_PROFILE_IMAGE_REQUEST = 1;
+    private static final String TAG = "SignUpActivity";
 
     private EditText firstNameEditText;
     private EditText lastNameEditText;
@@ -89,6 +90,8 @@ public class SignUpActivity extends AppCompatActivity {
             if (userDao.isUsernameExists(user.getUsername())) {
                 runOnUiThread(() -> Toast.makeText(SignUpActivity.this, "Username already exists", Toast.LENGTH_SHORT).show());
             } else {
+                long userId = userDao.insert(user);  // Insert the user and get the new ID
+                user.setId((int) userId);  // Set the new ID to the user object
                 runOnUiThread(() -> {
                     Toast.makeText(SignUpActivity.this, "User created successfully", Toast.LENGTH_SHORT).show();
 
@@ -105,7 +108,9 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void selectProfileImage() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
         startActivityForResult(intent, PICK_PROFILE_IMAGE_REQUEST);
     }
 
@@ -115,10 +120,17 @@ public class SignUpActivity extends AppCompatActivity {
         if (requestCode == PICK_PROFILE_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             profileImageUri = data.getData();
             if (profileImageUri != null) {
-                selectImageButton.setImageURI(profileImageUri);
-                // Grant URI permission
-                grantUriPermission(getPackageName(), profileImageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                getContentResolver().takePersistableUriPermission(profileImageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                try {
+                    // Take persistable URI permission
+                    final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    getContentResolver().takePersistableUriPermission(profileImageUri, takeFlags);
+
+                    // Set the image to the ImageButton
+                    selectImageButton.setImageURI(profileImageUri);
+                } catch (SecurityException e) {
+                    Log.e(TAG, "Failed to take persistable URI permission", e);
+                    Toast.makeText(this, "Failed to access the selected image", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }

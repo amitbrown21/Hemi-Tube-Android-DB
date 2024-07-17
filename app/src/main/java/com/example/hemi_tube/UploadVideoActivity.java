@@ -3,6 +3,7 @@ package com.example.hemi_tube;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -28,6 +29,7 @@ public class UploadVideoActivity extends AppCompatActivity {
 
     private static final int PICK_VIDEO_REQUEST = 1;
     public static final int PICK_THUMBNAIL_REQUEST = 2;
+    private static final String TAG = "UploadVideoActivity";
 
     private EditText title;
     private EditText description;
@@ -54,12 +56,10 @@ public class UploadVideoActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Initialize database, DAO, and executor
         database = AppDatabase.getInstance(this);
         videoDao = database.videoDao();
         executorService = Executors.newSingleThreadExecutor();
 
-        // Receive currentUser from the intent
         Intent intent = getIntent();
         currentUser = (User) intent.getSerializableExtra("currentUser");
 
@@ -75,12 +75,16 @@ public class UploadVideoActivity extends AppCompatActivity {
     }
 
     private void selectVideo() {
-        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("video/*");
         startActivityForResult(intent, PICK_VIDEO_REQUEST);
     }
 
     private void selectThumbnail() {
-        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
         startActivityForResult(intent, PICK_THUMBNAIL_REQUEST);
     }
 
@@ -88,12 +92,21 @@ public class UploadVideoActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
-            if (requestCode == PICK_VIDEO_REQUEST) {
-                videoUri = data.getData();
-                grantUriPermission(getPackageName(), videoUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            } else if (requestCode == PICK_THUMBNAIL_REQUEST) {
-                thumbnailUri = data.getData();
-                grantUriPermission(getPackageName(), thumbnailUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            Uri selectedUri = data.getData();
+            if (selectedUri != null) {
+                try {
+                    int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    getContentResolver().takePersistableUriPermission(selectedUri, takeFlags);
+
+                    if (requestCode == PICK_VIDEO_REQUEST) {
+                        videoUri = selectedUri;
+                    } else if (requestCode == PICK_THUMBNAIL_REQUEST) {
+                        thumbnailUri = selectedUri;
+                    }
+                } catch (SecurityException e) {
+                    Log.e(TAG, "Failed to take persistable URI permission", e);
+                    Toast.makeText(this, "Failed to access the selected file", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
@@ -108,18 +121,18 @@ public class UploadVideoActivity extends AppCompatActivity {
             Toast.makeText(this, "Please Sign in to upload a video", Toast.LENGTH_SHORT).show();
         } else {
             Video newVideo = new Video(
-                    0, // ID will be auto-generated
+                    0,
                     videoUri.toString(),
                     videoTitle,
                     currentUser.getId(),
-                    new Date().toString(), // Current date
-                    0, // Initial views
-                    0, // Initial likes
-                    0, // Initial dislikes
+                    new Date().toString(),
+                    0,
+                    0,
+                    0,
                     thumbnailUri.toString(),
                     videoDescription,
-                    "00:00", // Duration placeholder
-                    new ArrayList<>() // Initialize comments list
+                    "00:00",
+                    new ArrayList<>()
             );
 
             insertVideo(newVideo);

@@ -95,6 +95,10 @@ public class Video implements Serializable, Cloneable {
     }
 
     // Setters
+    public void setViews(int views) {
+        this.views = views;
+    }
+
     public void setId(int id) {
         this.id = id;
     }

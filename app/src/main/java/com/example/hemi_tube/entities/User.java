@@ -17,7 +17,7 @@ public class User implements Serializable {
     private int subscribers;
 
 
-    User() {
+    public User() {
     }
 
 
@@ -68,6 +68,34 @@ public class User implements Serializable {
     // Setters
     public void setSubscribers(int subscribers) {
         this.subscribers = subscribers;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 
     @Override

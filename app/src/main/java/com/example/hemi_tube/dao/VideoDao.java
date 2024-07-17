@@ -32,4 +32,7 @@ public interface VideoDao {
 
     @Query("UPDATE videos SET dislikes = dislikes + 1 WHERE id = :videoId")
     void incrementDislikes(int videoId);
+
+    @Query("SELECT * FROM videos WHERE title LIKE :query")
+    List<Video> searchVideos(String query);
 }

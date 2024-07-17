@@ -95,7 +95,7 @@ public class ChannelActivity extends AppCompatActivity {
             profileImage.setImageResource(R.drawable.profile);
         }
 
-        videoAdapter = new VideoRecyclerViewAdapter(this, videos, null, null, videos);
+        videoAdapter = new VideoRecyclerViewAdapter(this, videos, userDao, videoDao, null);
         videosRecyclerView.setAdapter(videoAdapter);
         videosRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }

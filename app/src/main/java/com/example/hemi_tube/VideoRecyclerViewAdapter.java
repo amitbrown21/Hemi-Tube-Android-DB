@@ -1,7 +1,6 @@
 package com.example.hemi_tube;
 
-import static com.example.hemi_tube.UploadVideoActivity.PICK_THUMBNAIL_REQUEST;
-
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -9,127 +8,79 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hemi_tube.dao.UserDao;
+import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecyclerViewAdapter.VideoViewHolder> {
 
     private Context context;
     private List<Video> videoList;
-    private List<User> userList;
+    private UserDao userDao;
+    private VideoDao videoDao;
     private User currentUser;
-    private List<Video> originalVideoList;
+    private ExecutorService executorService;
 
-    public VideoRecyclerViewAdapter(Context context, List<Video> videoList, List<User> userList, User currentUser, List<Video> originalVideoList) {
+    public VideoRecyclerViewAdapter(Context context, List<Video> videoList, UserDao userDao, VideoDao videoDao, User currentUser) {
         this.context = context;
         this.videoList = videoList;
-        this.userList = userList;
+        this.userDao = userDao;
+        this.videoDao = videoDao;
         this.currentUser = currentUser;
-        this.originalVideoList = originalVideoList;
+        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     @NonNull
     @Override
     public VideoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(context);
-        View view = inflater.inflate(R.layout.video_item, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.video_item, parent, false);
         return new VideoViewHolder(view);
     }
-
 
     @Override
     public void onBindViewHolder(@NonNull VideoViewHolder holder, int position) {
         Video currVideo = videoList.get(position);
         holder.title.setText(currVideo.getTitle());
 
-        User owner = Utils.getVideoOwner(currVideo, userList);
-        if (owner != null) {
-            String views = Utils.formatNumber(currVideo.getViews());
-            String metadata = owner.getUsername() + "  " + views + " views  " + currVideo.getDate();
-            holder.metaData.setText(metadata);
-
-            String thumbnail = currVideo.getThumbnail();
-            if (thumbnail != null && thumbnail.startsWith("content://")) {
-                try {
-                    Uri thumbnailUri = Uri.parse(thumbnail);
-                    holder.thumbnail.setImageURI(thumbnailUri);
-                } catch (SecurityException e) {
-                    Log.e("VideoRecyclerViewAdapter", "No access to content URI for thumbnail", e);
-                    holder.thumbnail.setImageResource(R.drawable.thumbnail_placeholder); // Default thumbnail
-                }
-            } else if (thumbnail != null && thumbnail.contains("/") && thumbnail.contains(".")) {
-                int lastSlash = thumbnail.lastIndexOf('/');
-                int lastDot = thumbnail.lastIndexOf('.');
-                if (lastSlash >= 0 && lastDot > lastSlash) {
-                    String thumbnailName = thumbnail.substring(lastSlash + 1, lastDot);
-                    int resourceId = context.getResources().getIdentifier(thumbnailName, "drawable", context.getPackageName());
-                    holder.thumbnail.setImageResource(resourceId);
-                }
+        executorService.execute(() -> {
+            User owner = userDao.getUserById(currVideo.getOwnerId());
+            if (owner != null) {
+                String views = Utils.formatNumber(currVideo.getViews());
+                String metadata = owner.getUsername() + "  " + views + " views  " + currVideo.getDate();
+                ((Activity) context).runOnUiThread(() -> {
+                    holder.metaData.setText(metadata);
+                    setThumbnail(holder.thumbnail, currVideo.getThumbnail());
+                    setProfilePicture(holder.profilePicture, owner.getProfilePicture());
+                });
             }
+        });
 
-            String profilePicturePath = owner.getProfilePicture();
-            if (profilePicturePath != null && profilePicturePath.startsWith("content://")) {
-                try {
-                    holder.profilePicture.setImageURI(Uri.parse(profilePicturePath));
-                } catch (SecurityException e) {
-                    Log.e("VideoRecyclerViewAdapter", "No access to content URI for profile picture", e);
-                    holder.profilePicture.setImageResource(R.drawable.profile); // Default profile picture
-                }
-            } else if (profilePicturePath != null && profilePicturePath.contains("/")) {
-                int lastSlash = profilePicturePath.lastIndexOf('/');
-                int lastDot = profilePicturePath.lastIndexOf('.');
-                if (lastSlash >= 0 && lastDot > lastSlash) {
-                    String profilePictureName = profilePicturePath.substring(lastSlash + 1, lastDot);
-                    int profilePictureResourceId = context.getResources().getIdentifier(profilePictureName, "drawable", context.getPackageName());
-                    if (profilePictureResourceId != 0) {
-                        holder.profilePicture.setImageResource(profilePictureResourceId);
-                    } else {
-                        holder.profilePicture.setImageResource(R.drawable.profile); // Default profile picture
-                    }
-                }
-            } else {
-                holder.profilePicture.setImageResource(R.drawable.profile); // Default profile picture
-            }
-
-            Log.d("ShonLog", "In VideoRecycler, videoList: " + videoList);
-            Log.d("ShonLog", "In VideoRecycler, originalVideoList: " + originalVideoList);
-
-            holder.thumbnail.setOnClickListener(v -> {
-                // Increase the view count
-                currVideo.increaseViews();
-
-                // Notify the adapter about the change
-                notifyItemChanged(position);
-
-                // Start the WatchScreenActivity
-                Intent watchVideo = new Intent(context, WatchScreenActivity.class);
-                watchVideo.putExtra("currentVideo", currVideo);
-                watchVideo.putExtra("videoList", new ArrayList<>(originalVideoList)); // Pass the updated video list
-                watchVideo.putExtra("currentUser", currentUser);
-                watchVideo.putExtra("userList", new ArrayList<>(userList));
-                watchVideo.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                context.startActivity(watchVideo);
+        holder.thumbnail.setOnClickListener(v -> {
+            executorService.execute(() -> {
+                videoDao.incrementViews(currVideo.getId());
+                Video updatedVideo = videoDao.getVideoById(currVideo.getId());
+                ((Activity) context).runOnUiThread(() -> {
+                    Intent watchVideo = new Intent(context, WatchScreenActivity.class);
+                    watchVideo.putExtra("videoId", updatedVideo.getId());
+                    watchVideo.putExtra("currentUserId", currentUser != null ? currentUser.getId() : -1);
+                    watchVideo.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    context.startActivity(watchVideo);
+                });
             });
-        } else {
-            Log.e("VideoRecyclerViewAdapter", "No owner found for video: " + currVideo.getTitle());
-        }
+        });
     }
-
 
     @Override
     public int getItemCount() {
@@ -139,14 +90,6 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
     public void updateList(List<Video> newVideoList) {
         this.videoList.clear();
         this.videoList.addAll(newVideoList);
-        //this.originalVideoList.clear();
-        //this.originalVideoList.addAll(newVideoList);
-        notifyDataSetChanged();
-    }
-
-    public void updateUserList(List<User> newUserList) {
-        this.userList.clear();
-        this.userList.addAll(newUserList);
         notifyDataSetChanged();
     }
 
@@ -155,19 +98,66 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
         notifyDataSetChanged();
     }
 
+    private void setThumbnail(ImageButton imageButton, String thumbnailPath) {
+        if (thumbnailPath != null && thumbnailPath.startsWith("content://")) {
+            try {
+                imageButton.setImageURI(Uri.parse(thumbnailPath));
+            } catch (SecurityException e) {
+                Log.e("VideoRecyclerViewAdapter", "No access to content URI for thumbnail", e);
+                imageButton.setImageResource(R.drawable.thumbnail_placeholder);
+            }
+        } else if (thumbnailPath != null && thumbnailPath.contains("/")) {
+            int resourceId = context.getResources().getIdentifier(
+                    thumbnailPath.substring(thumbnailPath.lastIndexOf("/") + 1, thumbnailPath.lastIndexOf(".")),
+                    "drawable",
+                    context.getPackageName()
+            );
+            imageButton.setImageResource(resourceId != 0 ? resourceId : R.drawable.thumbnail_placeholder);
+        } else {
+            imageButton.setImageResource(R.drawable.thumbnail_placeholder);
+        }
+    }
 
-    public static class VideoViewHolder extends RecyclerView.ViewHolder {
+    private void setProfilePicture(ImageView imageView, String picturePath) {
+        if (picturePath != null && picturePath.startsWith("content://")) {
+            try {
+                imageView.setImageURI(Uri.parse(picturePath));
+            } catch (SecurityException e) {
+                Log.e("VideoRecyclerViewAdapter", "No access to content URI for profile picture", e);
+                imageView.setImageResource(R.drawable.profile);
+            }
+        } else if (picturePath != null && picturePath.contains("/")) {
+            int resourceId = context.getResources().getIdentifier(
+                    picturePath.substring(picturePath.lastIndexOf("/") + 1, picturePath.lastIndexOf(".")),
+                    "drawable",
+                    context.getPackageName()
+            );
+            imageView.setImageResource(resourceId != 0 ? resourceId : R.drawable.profile);
+        } else {
+            imageView.setImageResource(R.drawable.profile);
+        }
+    }
+
+    static class VideoViewHolder extends RecyclerView.ViewHolder {
         ImageButton thumbnail;
         ImageView profilePicture;
         TextView title;
         TextView metaData;
 
-        public VideoViewHolder(@NonNull View videoView) {
-            super(videoView);
-            thumbnail = videoView.findViewById(R.id.thumbnail);
-            profilePicture = videoView.findViewById(R.id.profilePicture);
-            title = videoView.findViewById(R.id.title);
-            metaData = videoView.findViewById(R.id.metaData);
+        VideoViewHolder(@NonNull View itemView) {
+            super(itemView);
+            thumbnail = itemView.findViewById(R.id.thumbnail);
+            profilePicture = itemView.findViewById(R.id.profilePicture);
+            title = itemView.findViewById(R.id.title);
+            metaData = itemView.findViewById(R.id.metaData);
+        }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        if (executorService != null) {
+            executorService.shutdown();
         }
     }
 }

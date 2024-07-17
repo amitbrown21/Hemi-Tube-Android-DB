@@ -1,236 +1,190 @@
 package com.example.hemi_tube;
 
-import android.app.AlertDialog;
+import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hemi_tube.dao.CommentDao;
+import com.example.hemi_tube.dao.UserDao;
+import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.entities.CommentObj;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecyclerViewAdapter.commentViewHolder> {
+public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecyclerViewAdapter.CommentViewHolder> {
 
-    Context context;
-    List<CommentObj> commentObjList;
-    List<User> userList;
-    Video currentVideo;
-    List<Video> videoList;
-    VideoRecyclerViewAdapter videoAdapter;
-    User currentUser;
+    private Context context;
+    private List<CommentObj> commentList;
+    private UserDao userDao;
+    private CommentDao commentDao;
+    private Video currentVideo;
+    private VideoDao videoDao;
+    private User currentUser;
+    private ExecutorService executorService;
 
-    public CommentRecyclerViewAdapter(Context context, List<CommentObj> commentList, List<User> userList, Video currentVideo, List<Video> videoList, VideoRecyclerViewAdapter videoAdapter, User currentUser) {
+    public CommentRecyclerViewAdapter(Context context, List<CommentObj> commentList, UserDao userDao, CommentDao commentDao, Video currentVideo, VideoDao videoDao, User currentUser) {
         this.context = context;
-        this.commentObjList = commentList;
-        this.userList = userList;
+        this.commentList = commentList;
+        this.userDao = userDao;
+        this.commentDao = commentDao;
         this.currentVideo = currentVideo;
-        this.videoList = videoList;
-        this.videoAdapter = videoAdapter;
+        this.videoDao = videoDao;
         this.currentUser = currentUser;
+        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     @NonNull
     @Override
-    public commentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(context);
-        View view = inflater.inflate(R.layout.comment_item, parent, false);
-        return new commentViewHolder(view);
+    public CommentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.comment_item, parent, false);
+        return new CommentViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull commentViewHolder holder, int position) {
-        CommentObj currentComment = commentObjList.get(position);
-        holder.username.setText(currentComment.getUsername());
-        holder.body.setText(currentComment.getBody());
+    public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
+        CommentObj comment = commentList.get(position);
+        holder.username.setText(comment.getUsername());
+        holder.body.setText(comment.getBody());
 
-        // Find the user associated with the comment's username
-        User commenter = null;
-        for (User user : userList) {
-            if (user.getUsername().equals(currentComment.getUsername())) {
-                commenter = user;
-                break;
+        executorService.execute(() -> {
+            User commenter = userDao.getUserByUsername(comment.getUsername());
+            if (commenter != null) {
+                ((Activity) context).runOnUiThread(() ->
+                        setProfilePicture(holder.profilePic, commenter.getProfilePicture())
+                );
             }
-        }
+        });
 
-        if (commenter != null) {
-            String profilePicturePath = commenter.getProfilePicture();
-            if (profilePicturePath != null && profilePicturePath.startsWith("content://")) {
-                try {
-                    holder.profilePic.setImageURI(Uri.parse(profilePicturePath));
-                } catch (SecurityException e) {
-                    Log.e("CommentRecyclerViewAdapter", "No access to content URI for profile picture", e);
-                    holder.profilePic.setImageResource(R.drawable.profile); // Default profile picture
-                }
-            } else if (profilePicturePath != null && profilePicturePath.contains("/")) {
-                int lastSlash = profilePicturePath.lastIndexOf('/');
-                int lastDot = profilePicturePath.lastIndexOf('.');
-                if (lastSlash >= 0 && lastDot > lastSlash) {
-                    String profilePictureName = profilePicturePath.substring(lastSlash + 1, lastDot);
-                    int profilePictureResourceId = context.getResources().getIdentifier(profilePictureName, "drawable", context.getPackageName());
-                    if (profilePictureResourceId != 0) {
-                        holder.profilePic.setImageResource(profilePictureResourceId);
-                    } else {
-                        holder.profilePic.setImageResource(R.drawable.profile); // Default profile picture
-                    }
-                } else {
-                    holder.profilePic.setImageResource(R.drawable.profile); // Default profile picture
-                }
-            } else {
-                holder.profilePic.setImageResource(R.drawable.profile); // Default profile picture
-            }
-        } else {
-            holder.profilePic.setImageResource(R.drawable.profile); // Default profile picture
-        }
+        boolean isCurrentUserComment = currentUser != null && currentUser.getUsername().equals(comment.getUsername());
+        holder.editComment.setVisibility(isCurrentUserComment ? View.VISIBLE : View.GONE);
+        holder.deleteComment.setVisibility(isCurrentUserComment ? View.VISIBLE : View.GONE);
 
-        // Check if the current user is not null
-        if (currentUser != null) {
-            holder.editComment.setVisibility(View.VISIBLE);
-            holder.editComment.setOnClickListener(v -> editComment(currentComment.getId()));
-            holder.deleteComment.setVisibility(View.VISIBLE);
-            holder.deleteComment.setOnClickListener(v -> deleteComment(currentComment.getId()));
-        } else {
-            holder.editComment.setVisibility(View.GONE);
-            holder.deleteComment.setVisibility(View.GONE);
-        }
+        holder.editComment.setOnClickListener(v -> editComment(comment));
+        holder.deleteComment.setOnClickListener(v -> deleteComment(comment));
     }
 
     @Override
     public int getItemCount() {
-        return commentObjList.size();
+        return commentList.size();
     }
 
-    public static class commentViewHolder extends RecyclerView.ViewHolder {
+    public void updateComments(List<CommentObj> newComments) {
+        this.commentList.clear();
+        this.commentList.addAll(newComments);
+        notifyDataSetChanged();
+    }
+
+    private void editComment(CommentObj comment) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        View dialogView = LayoutInflater.from(context).inflate(R.layout.edit_comment, null);
+        builder.setView(dialogView);
+
+        TextView editText = dialogView.findViewById(R.id.edit_comment_text);
+        editText.setText(comment.getBody());
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            String updatedText = editText.getText().toString();
+            if (!updatedText.isEmpty()) {
+                executorService.execute(() -> {
+                    comment.setBody(updatedText);
+                    commentDao.update(comment);
+                    ((Activity) context).runOnUiThread(this::notifyDataSetChanged);
+                });
+            }
+        });
+
+        builder.setNegativeButton("Cancel", null);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void deleteComment(CommentObj comment) {
+        new AlertDialog.Builder(context)
+                .setTitle("Delete Comment")
+                .setMessage("Are you sure you want to delete this comment?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    executorService.execute(() -> {
+                        commentDao.delete(comment);
+                        List<CommentObj> updatedComments = commentDao.getCommentsForVideo(currentVideo.getId());
+                        ((Activity) context).runOnUiThread(() -> updateComments(updatedComments));
+                    });
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    public void submitComment(String newCommentBody) {
+        if (newCommentBody.isEmpty()) {
+            return;
+        }
+
+        if (currentUser == null) {
+            Toast.makeText(context, "Please sign in to comment", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        executorService.execute(() -> {
+            CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
+            commentDao.insert(newComment);
+            List<CommentObj> updatedComments = commentDao.getCommentsForVideo(currentVideo.getId());
+            ((Activity) context).runOnUiThread(() -> updateComments(updatedComments));
+        });
+    }
+
+    private void setProfilePicture(ImageView imageView, String picturePath) {
+        if (picturePath == null) {
+            imageView.setImageResource(R.drawable.profile);
+        } else if (picturePath.startsWith("content://")) {
+            try {
+                imageView.setImageURI(Uri.parse(picturePath));
+            } catch (SecurityException e) {
+                Log.e("CommentRecyclerViewAdapter", "No access to content URI for profile picture", e);
+                imageView.setImageResource(R.drawable.profile);
+            }
+        } else {
+            int resourceId = context.getResources().getIdentifier(picturePath, "drawable", context.getPackageName());
+            imageView.setImageResource(resourceId != 0 ? resourceId : R.drawable.profile);
+        }
+    }
+
+    static class CommentViewHolder extends RecyclerView.ViewHolder {
         TextView username;
         TextView body;
         ImageView profilePic;
         TextView editComment;
         TextView deleteComment;
 
-        public commentViewHolder(@NonNull View CommentView) {
-            super(CommentView);
-            username = CommentView.findViewById(R.id.comment_username);
-            body = CommentView.findViewById(R.id.comment_body);
-            profilePic = CommentView.findViewById(R.id.profilePicture);
-            editComment = CommentView.findViewById(R.id.editComment);
-            deleteComment = CommentView.findViewById(R.id.deleteComment);
+        CommentViewHolder(@NonNull View itemView) {
+            super(itemView);
+            username = itemView.findViewById(R.id.comment_username);
+            body = itemView.findViewById(R.id.comment_body);
+            profilePic = itemView.findViewById(R.id.profilePicture);
+            editComment = itemView.findViewById(R.id.editComment);
+            deleteComment = itemView.findViewById(R.id.deleteComment);
         }
     }
 
-    private void deleteComment(int commentId) {
-        for (int i = 0; i < commentObjList.size(); i++) {
-            CommentObj comment = commentObjList.get(i);
-            if (comment.getId() == commentId) {
-                commentObjList.remove(i);
-                notifyItemRemoved(i);
-                notifyItemRangeChanged(i, commentObjList.size());
-
-                // Update the current video's comments
-                currentVideo.setComments(new ArrayList<>(commentObjList));
-
-                // Update the video in the videoList
-                for (int j = 0; j < videoList.size(); j++) {
-                    if (videoList.get(j).getId() == currentVideo.getId()) {
-                        videoList.set(j, currentVideo);
-                        break;
-                    }
-                }
-
-                // Notify the video adapter that the data has changed
-                videoAdapter.notifyDataSetChanged();
-
-                break;
-            }
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        if (executorService != null) {
+            executorService.shutdown();
         }
-    }
-
-    private void editComment(int commentId) {
-        for (CommentObj comment : commentObjList) {
-            if (comment.getId() == commentId) {
-                LayoutInflater inflater = LayoutInflater.from(context);
-                View editCommentView = inflater.inflate(R.layout.edit_comment, null);
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                builder.setView(editCommentView);
-
-                EditText editText = editCommentView.findViewById(R.id.edit_comment_text);
-                Button confirmButton = editCommentView.findViewById(R.id.confirm_edit_button);
-                Button cancelButton = editCommentView.findViewById(R.id.cancel_edit_button);
-
-                editText.setText(comment.getBody());
-
-                AlertDialog dialog = builder.create();
-                dialog.show();
-
-                confirmButton.setOnClickListener(v -> {
-                    String updatedText = editText.getText().toString();
-                    if (!updatedText.isEmpty()) {
-                        comment.setBody(updatedText);
-                        notifyItemChanged(commentObjList.indexOf(comment));
-                    }
-                    dialog.dismiss();
-                    updateVideoComments();
-                });
-
-                cancelButton.setOnClickListener(v -> {
-                    dialog.dismiss();
-                });
-
-                break;
-            }
-        }
-    }
-
-    private void updateVideoComments() {
-        currentVideo.setComments(new ArrayList<>(commentObjList));
-        for (int i = 0; i < videoList.size(); i++) {
-            if (videoList.get(i).getId() == currentVideo.getId()) {
-                videoList.set(i, currentVideo);
-                break;
-            }
-        }
-        videoAdapter.notifyDataSetChanged(); // Update the video list display
-    }
-
-    public void submitComment(String newCommentBody, User currentUser) {
-        if (newCommentBody.isEmpty()) {
-            return;
-        }
-
-        if (currentUser == null) {
-            Toast.makeText(context, "Sign in to comment", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        CommentObj newComment = new CommentObj(currentUser.getUsername(), newCommentBody);
-        commentObjList.add(newComment);
-
-        // Update the current video's comments
-        currentVideo.setComments(new ArrayList<>(commentObjList));
-
-        // Update the video in the videoList
-        for (int j = 0; j < videoList.size(); j++) {
-            if (videoList.get(j).getId() == currentVideo.getId()) {
-                videoList.set(j, currentVideo);
-                break;
-            }
-        }
-
-        // Notify the adapter of the change
-        notifyDataSetChanged();
-        videoAdapter.notifyDataSetChanged();
     }
 }

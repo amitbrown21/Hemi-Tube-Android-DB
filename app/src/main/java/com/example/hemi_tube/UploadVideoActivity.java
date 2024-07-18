@@ -14,16 +14,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.example.hemi_tube.database.AppDatabase;
-import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
+import com.example.hemi_tube.repository.RepositoryCallback;
+import com.example.hemi_tube.viewmodel.VideoViewModel;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class UploadVideoActivity extends AppCompatActivity {
 
@@ -41,9 +40,7 @@ public class UploadVideoActivity extends AppCompatActivity {
     private Uri thumbnailUri;
 
     private User currentUser;
-    private AppDatabase database;
-    private VideoDao videoDao;
-    private ExecutorService executorService;
+    private VideoViewModel videoViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +53,7 @@ public class UploadVideoActivity extends AppCompatActivity {
             return insets;
         });
 
-        database = AppDatabase.getInstance(this);
-        videoDao = database.videoDao();
-        executorService = Executors.newSingleThreadExecutor();
+        videoViewModel = new ViewModelProvider(this).get(VideoViewModel.class);
 
         Intent intent = getIntent();
         currentUser = (User) intent.getSerializableExtra("currentUser");
@@ -135,28 +130,27 @@ public class UploadVideoActivity extends AppCompatActivity {
                     new ArrayList<>()
             );
 
-            insertVideo(newVideo);
+            createVideo(newVideo);
         }
     }
 
-    private void insertVideo(Video video) {
-        executorService.execute(() -> {
-            long videoId = videoDao.insert(video);
-            runOnUiThread(() -> {
-                if (videoId > 0) {
-                    Toast.makeText(this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
+    private void createVideo(Video video) {
+        videoViewModel.createVideo(currentUser.getId(), video, new RepositoryCallback<Video>() {
+            @Override
+            public void onSuccess(Video result) {
+                runOnUiThread(() -> {
+                    Toast.makeText(UploadVideoActivity.this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
                     setResult(RESULT_OK);
                     finish();
-                } else {
-                    Toast.makeText(this, "Failed to upload video", Toast.LENGTH_SHORT).show();
-                }
-            });
-        });
-    }
+                });
+            }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executorService.shutdown();
+            @Override
+            public void onError(Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(UploadVideoActivity.this, "Failed to upload video: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 }

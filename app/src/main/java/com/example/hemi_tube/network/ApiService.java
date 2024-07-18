@@ -26,6 +26,9 @@ public interface ApiService {
     @GET("users/{username}")
     Call<User> getUserByUsername(@Path("username") String username);
 
+    @GET("videos/{videoId}/comments")
+    Call<List<CommentObj>> getCommentsByVideoId(@Path("videoId") int videoId);
+
     @POST("users")
     Call<User> createUser(@Body User user);
 
@@ -94,6 +97,7 @@ public interface ApiService {
     @DELETE("users/{id}/videos/{pid}/comments/{commentId}")
     Call<Void> deleteComment(@Path("id") int userId, @Path("pid") int videoId, @Path("commentId") int commentId);
 
+
     // Additional classes for login
     class LoginRequest {
         String username;
@@ -104,13 +108,19 @@ public interface ApiService {
             this.password = password;
         }
     }
+
     class SignUpResponse {
         User user;
         String token;
     }
 
-    class LoginResponse {
-        String token;
-        int userId;
+    public class LoginResponse {
+        public String token;
+        public int userId;
+
+        public LoginResponse(String token, int userId) {
+            this.token = token;
+            this.userId = userId;
+        }
     }
 }

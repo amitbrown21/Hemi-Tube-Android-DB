@@ -13,22 +13,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.example.hemi_tube.database.AppDatabase;
-import com.example.hemi_tube.dao.UserDao;
 import com.example.hemi_tube.entities.User;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.example.hemi_tube.network.ApiService;
+import com.example.hemi_tube.repository.RepositoryCallback;
+import com.example.hemi_tube.viewmodel.UserViewModel;
 
 public class LogInActivity extends AppCompatActivity {
     private EditText usernameEditText;
     private EditText passwordEditText;
     private Button signInButton;
     private Button signUpButton;
-    private AppDatabase database;
-    private UserDao userDao;
-    private ExecutorService executorService;
+    private UserViewModel userViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,9 +43,7 @@ public class LogInActivity extends AppCompatActivity {
         signInButton = findViewById(R.id.signInButton);
         signUpButton = findViewById(R.id.signUpButton);
 
-        database = AppDatabase.getInstance(this);
-        userDao = database.userDao();
-        executorService = Executors.newSingleThreadExecutor();
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
 
         signInButton.setOnClickListener(v -> {
             String username = usernameEditText.getText().toString();
@@ -57,7 +52,7 @@ public class LogInActivity extends AppCompatActivity {
             if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(LogInActivity.this, "Please fill out all fields", Toast.LENGTH_SHORT).show();
             } else {
-                validateUser(username, password);
+                login(username, password);
             }
         });
 
@@ -67,20 +62,26 @@ public class LogInActivity extends AppCompatActivity {
         });
     }
 
-    private void validateUser(String username, String password) {
-        executorService.execute(() -> {
-            User currentUser = userDao.getUserForLogin(username, password);
-            runOnUiThread(() -> {
-                if (currentUser != null) {
+    private void login(String username, String password) {
+        userViewModel.login(username, password, new RepositoryCallback<ApiService.LoginResponse>() {
+            @Override
+            public void onSuccess(ApiService.LoginResponse result) {
+                runOnUiThread(() -> {
                     Toast.makeText(LogInActivity.this, "Sign in successful", Toast.LENGTH_SHORT).show();
                     Intent resultIntent = new Intent();
-                    resultIntent.putExtra("currentUser", currentUser);
+                    resultIntent.putExtra("currentUserId", result.userId);
+                    resultIntent.putExtra("token", result.token);
                     setResult(RESULT_OK, resultIntent);
                     finish();
-                } else {
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                runOnUiThread(() -> {
                     Toast.makeText(LogInActivity.this, "Invalid username or password", Toast.LENGTH_SHORT).show();
-                }
-            });
+                });
+            }
         });
     }
 
@@ -92,14 +93,10 @@ public class LogInActivity extends AppCompatActivity {
                 User newUser = (User) data.getSerializableExtra("newUser");
                 if (newUser != null) {
                     Log.d("LogInActivity", "onActivityResult: New user created: " + newUser.toString());
+                    // You might want to automatically log in the new user here
+                    login(newUser.getUsername(), newUser.getPassword());
                 }
             }
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executorService.shutdown();
     }
 }

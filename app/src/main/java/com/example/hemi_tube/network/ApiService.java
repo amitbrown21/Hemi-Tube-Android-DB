@@ -3,6 +3,8 @@ package com.example.hemi_tube.network;
 import com.example.hemi_tube.entities.CommentObj;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
+import com.example.hemi_tube.entities.VideoResponse;
+
 
 import java.util.List;
 
@@ -49,7 +51,7 @@ public interface ApiService {
 
     // Video endpoints
     @GET("videos")
-    Call<List<Video>> getAllVideos();
+    Call<VideoResponse> getAllVideos();
 
     @GET("videos/{pid}")
     Call<Video> getVideoById(@Path("pid") int videoId);

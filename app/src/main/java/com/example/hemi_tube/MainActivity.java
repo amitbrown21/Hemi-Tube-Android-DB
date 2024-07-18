@@ -31,6 +31,7 @@ import com.example.hemi_tube.dao.UserDao;
 import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
+import com.example.hemi_tube.repository.VideoRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
     private UserDao userDao;
     private VideoDao videoDao;
     private ExecutorService executorService;
+
+    private VideoRepository videoRepository;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +98,9 @@ public class MainActivity extends AppCompatActivity {
             currentUser = (User) intent.getSerializableExtra("currentUser");
             isSignedIn = true;
         }
+
+        // Initialize VideoRepository
+        videoRepository = new VideoRepository(getApplicationContext());
 
         loadVideos();
 
@@ -131,13 +138,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadVideos() {
-        executorService.execute(() -> {
-            videos = videoDao.getAllVideos();
-            runOnUiThread(() -> {
+        videoRepository.getAllVideos().observe(this, videos -> {
+            if (videos != null && !videos.isEmpty()) {
                 videoAdapter = new VideoRecyclerViewAdapter(this, videos, userDao, videoDao, currentUser);
                 videoRecyclerView.setAdapter(videoAdapter);
                 videoRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-            });
+                videoRecyclerView.setVisibility(View.VISIBLE);
+                noResultsTextView.setVisibility(View.GONE);
+            } else {
+                videoRecyclerView.setVisibility(View.GONE);
+                noResultsTextView.setText("No videos available");
+                noResultsTextView.setVisibility(View.VISIBLE);
+            }
         });
     }
 

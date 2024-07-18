@@ -72,7 +72,7 @@ public class SignUpActivity extends AppCompatActivity {
                 Toast.makeText(SignUpActivity.this, "Password must be 8-20 characters long and contain only English letters and numbers", Toast.LENGTH_SHORT).show();
             } else {
                 String profilePictureUri = (profileImageUri != null) ? profileImageUri.toString() : "drawable/placeholder";
-                User newUser = new User(0, firstName, lastName, username, password, gender, profilePictureUri, 0);
+                User newUser = new User("0", firstName, lastName, username, password, gender, profilePictureUri, 0);
                 createUser(newUser);
             }
         });

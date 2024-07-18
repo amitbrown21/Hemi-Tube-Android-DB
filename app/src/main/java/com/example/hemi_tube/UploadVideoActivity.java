@@ -116,7 +116,7 @@ public class UploadVideoActivity extends AppCompatActivity {
             Toast.makeText(this, "Please Sign in to upload a video", Toast.LENGTH_SHORT).show();
         } else {
             Video newVideo = new Video(
-                    0,
+                    "0",
                     videoUri.toString(),
                     videoTitle,
                     currentUser.getId(),

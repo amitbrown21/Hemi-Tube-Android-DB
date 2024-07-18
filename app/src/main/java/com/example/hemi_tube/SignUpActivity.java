@@ -13,13 +13,11 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.example.hemi_tube.dao.UserDao;
-import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.entities.User;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.example.hemi_tube.repository.RepositoryCallback;
+import com.example.hemi_tube.viewmodel.UserViewModel;
 
 public class SignUpActivity extends AppCompatActivity {
     private static final int PICK_PROFILE_IMAGE_REQUEST = 1;
@@ -35,18 +33,14 @@ public class SignUpActivity extends AppCompatActivity {
     private Uri profileImageUri;
     private ImageButton selectImageButton;
 
-    private AppDatabase database;
-    private UserDao userDao;
-    private ExecutorService executorService;
+    private UserViewModel userViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
-        database = AppDatabase.getInstance(this);
-        userDao = database.userDao();
-        executorService = Executors.newSingleThreadExecutor();
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
 
         firstNameEditText = findViewById(R.id.firstNameEditText);
         lastNameEditText = findViewById(R.id.lastNameEditText);
@@ -79,29 +73,35 @@ public class SignUpActivity extends AppCompatActivity {
             } else {
                 String profilePictureUri = (profileImageUri != null) ? profileImageUri.toString() : "drawable/placeholder";
                 User newUser = new User(0, firstName, lastName, username, password, gender, profilePictureUri, 0);
-                insertUser(newUser);
+                createUser(newUser);
             }
         });
     }
 
-    private void insertUser(User user) {
-        executorService.execute(() -> {
-            // Check if username already exists
-            if (userDao.isUsernameExists(user.getUsername())) {
-                runOnUiThread(() -> Toast.makeText(SignUpActivity.this, "Username already exists", Toast.LENGTH_SHORT).show());
-            } else {
-                long userId = userDao.insert(user);  // Insert the user and get the new ID
-                user.setId((int) userId);  // Set the new ID to the user object
+    private void createUser(User user) {
+        userViewModel.createUser(user, new RepositoryCallback<User>() {
+            @Override
+            public void onSuccess(User result) {
                 runOnUiThread(() -> {
                     Toast.makeText(SignUpActivity.this, "User created successfully", Toast.LENGTH_SHORT).show();
 
-                    // Create an intent to return to MainActivity
                     Intent mainIntent = new Intent(SignUpActivity.this, MainActivity.class);
-                    mainIntent.putExtra("currentUser", user);
+                    mainIntent.putExtra("currentUser", result);
                     mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 
                     startActivity(mainIntent);
                     finish();
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                runOnUiThread(() -> {
+                    if (e.getMessage().contains("Username already exists")) {
+                        Toast.makeText(SignUpActivity.this, "Username already exists", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(SignUpActivity.this, "Failed to create user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 });
             }
         });
@@ -121,11 +121,8 @@ public class SignUpActivity extends AppCompatActivity {
             profileImageUri = data.getData();
             if (profileImageUri != null) {
                 try {
-                    // Take persistable URI permission
                     final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                     getContentResolver().takePersistableUriPermission(profileImageUri, takeFlags);
-
-                    // Set the image to the ImageButton
                     selectImageButton.setImageURI(profileImageUri);
                 } catch (SecurityException e) {
                     Log.e(TAG, "Failed to take persistable URI permission", e);
@@ -136,14 +133,7 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private boolean isValidPassword(String password) {
-        // Password must be 8-20 characters long and contain only English letters and numbers
         String passwordPattern = "^[a-zA-Z0-9]{8,20}$";
         return password.matches(passwordPattern);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executorService.shutdown();
     }
 }

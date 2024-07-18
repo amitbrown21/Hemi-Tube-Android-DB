@@ -1,13 +1,17 @@
 package com.example.hemi_tube.dao;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.*;
 import com.example.hemi_tube.entities.User;
 import java.util.List;
 
 @Dao
 public interface UserDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(User user);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertAll(List<User> users);
 
     @Update
     void update(User user);
@@ -15,14 +19,26 @@ public interface UserDao {
     @Delete
     void delete(User user);
 
+    @Query("DELETE FROM users WHERE id = :userId")
+    void deleteById(int userId);
+
     @Query("SELECT * FROM users")
     List<User> getAllUsers();
+
+    @Query("SELECT * FROM users")
+    LiveData<List<User>> getAllUsersLive();
 
     @Query("SELECT * FROM users WHERE id = :userId")
     User getUserById(int userId);
 
+    @Query("SELECT * FROM users WHERE id = :userId")
+    LiveData<User> getUserByIdLive(int userId);
+
     @Query("SELECT * FROM users WHERE username = :username")
     User getUserByUsername(String username);
+
+    @Query("SELECT * FROM users WHERE username = :username")
+    LiveData<User> getUserByUsernameLive(String username);
 
     @Query("SELECT * FROM users WHERE username = :username AND password = :password")
     User getUserForLogin(String username, String password);

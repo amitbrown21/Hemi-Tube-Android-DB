@@ -1,6 +1,7 @@
 package com.example.hemi_tube.repository;
 
 import android.content.Context;
+import android.util.Log;
 import androidx.lifecycle.LiveData;
 import com.example.hemi_tube.dao.UserDao;
 import com.example.hemi_tube.database.AppDatabase;
@@ -14,6 +15,7 @@ import java.util.concurrent.Executors;
 import retrofit2.Response;
 
 public class UserRepository {
+    private static final String TAG = "UserRepository";
     private UserDao userDao;
     private ApiService apiService;
     private Executor executor;
@@ -48,11 +50,14 @@ public class UserRepository {
                     User createdUser = response.body();
                     userDao.insert(createdUser);
                     callback.onSuccess(createdUser);
+                    Log.d(TAG, "User created successfully: " + createdUser.getId());
                 } else {
                     callback.onError(new Exception("Failed to create user"));
+                    Log.e(TAG, "Failed to create user: " + response.message());
                 }
             } catch (IOException e) {
                 callback.onError(e);
+                Log.e(TAG, "Error creating user", e);
             }
         });
     }
@@ -65,11 +70,14 @@ public class UserRepository {
                     User updatedUser = response.body();
                     userDao.update(updatedUser);
                     callback.onSuccess(updatedUser);
+                    Log.d(TAG, "User updated successfully: " + updatedUser.getId());
                 } else {
                     callback.onError(new Exception("Failed to update user"));
+                    Log.e(TAG, "Failed to update user: " + response.message());
                 }
             } catch (IOException e) {
                 callback.onError(e);
+                Log.e(TAG, "Error updating user", e);
             }
         });
     }
@@ -81,11 +89,14 @@ public class UserRepository {
                 if (response.isSuccessful()) {
                     userDao.deleteById(userId);
                     callback.onSuccess(null);
+                    Log.d(TAG, "User deleted successfully: " + userId);
                 } else {
                     callback.onError(new Exception("Failed to delete user"));
+                    Log.e(TAG, "Failed to delete user: " + response.message());
                 }
             } catch (IOException e) {
                 callback.onError(e);
+                Log.e(TAG, "Error deleting user", e);
             }
         });
     }
@@ -96,11 +107,14 @@ public class UserRepository {
                 Response<ApiService.LoginResponse> response = apiService.login(new ApiService.LoginRequest(username, password)).execute();
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(response.body());
+                    Log.d(TAG, "Login successful for user: " + username);
                 } else {
                     callback.onError(new Exception("Login failed"));
+                    Log.e(TAG, "Login failed for user: " + username + ", message: " + response.message());
                 }
             } catch (IOException e) {
                 callback.onError(e);
+                Log.e(TAG, "Error during login for user: " + username, e);
             }
         });
     }
@@ -111,9 +125,10 @@ public class UserRepository {
                 Response<User> response = apiService.getUserById(userId).execute();
                 if (response.isSuccessful() && response.body() != null) {
                     userDao.insert(response.body());
+                    Log.d(TAG, "User refreshed successfully: " + userId);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error refreshing user", e);
             }
         });
     }
@@ -124,9 +139,10 @@ public class UserRepository {
                 Response<User> response = apiService.getUserByUsername(username).execute();
                 if (response.isSuccessful() && response.body() != null) {
                     userDao.insert(response.body());
+                    Log.d(TAG, "User refreshed successfully: " + username);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error refreshing user by username", e);
             }
         });
     }
@@ -137,9 +153,10 @@ public class UserRepository {
                 Response<List<User>> response = apiService.getAllUsers().execute();
                 if (response.isSuccessful() && response.body() != null) {
                     userDao.insertAll(response.body());
+                    Log.d(TAG, "All users refreshed successfully");
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error refreshing all users", e);
             }
         });
     }

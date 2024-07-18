@@ -1,6 +1,7 @@
 package com.example.hemi_tube;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -21,6 +22,7 @@ import com.example.hemi_tube.repository.RepositoryCallback;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 
 public class LogInActivity extends AppCompatActivity {
+    private static final String TAG = "LogInActivity";
     private EditText usernameEditText;
     private EditText passwordEditText;
     private Button signInButton;
@@ -67,11 +69,21 @@ public class LogInActivity extends AppCompatActivity {
             @Override
             public void onSuccess(ApiService.LoginResponse result) {
                 runOnUiThread(() -> {
+                    Log.d(TAG, "Login successful. Token: " + result.token + ", UserId: " + result.userId);
+
+                    // Store the token and user ID in SharedPreferences
+                    SharedPreferences prefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putString("jwt_token", result.token);
+                    editor.putInt("user_id", result.userId);
+                    editor.apply();
+
                     Toast.makeText(LogInActivity.this, "Sign in successful", Toast.LENGTH_SHORT).show();
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("currentUserId", result.userId);
-                    resultIntent.putExtra("token", result.token);
-                    setResult(RESULT_OK, resultIntent);
+
+                    // Start MainActivity and clear the activity stack
+                    Intent mainIntent = new Intent(LogInActivity.this, MainActivity.class);
+                    mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(mainIntent);
                     finish();
                 });
             }
@@ -79,6 +91,7 @@ public class LogInActivity extends AppCompatActivity {
             @Override
             public void onError(Exception e) {
                 runOnUiThread(() -> {
+                    Log.e(TAG, "Login error: " + e.getMessage());
                     Toast.makeText(LogInActivity.this, "Invalid username or password", Toast.LENGTH_SHORT).show();
                 });
             }
@@ -92,8 +105,8 @@ public class LogInActivity extends AppCompatActivity {
             if (requestCode == 1) {
                 User newUser = (User) data.getSerializableExtra("newUser");
                 if (newUser != null) {
-                    Log.d("LogInActivity", "onActivityResult: New user created: " + newUser.toString());
-                    // You might want to automatically log in the new user here
+                    Log.d(TAG, "onActivityResult: New user created: " + newUser.toString());
+                    // Automatically log in the new user
                     login(newUser.getUsername(), newUser.getPassword());
                 }
             }

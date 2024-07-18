@@ -37,8 +37,8 @@
     <string name="password">Password</string>
     <string name="your_password_must_be_8_20_characters_long_and_contain_both_and_only_english_letters_and_numbers">Your password must be 8-20 characters long, and contain both (and only) English letters and Numbers.</string>
     <string name="password_confirmation">Password confirmation</string>
-    <string name="male">Male</string>
-    <string name="female">Female</string>
+    <string name="male">male</string>
+    <string name="female">female</string>
     <string name="other">Other</string>
     <string name="select_profile_image">Select Profile Image</string>
     <string name="sign_up">Sign Up</string>

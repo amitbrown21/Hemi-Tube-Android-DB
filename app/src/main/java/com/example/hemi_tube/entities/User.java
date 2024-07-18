@@ -1,13 +1,16 @@
 package com.example.hemi_tube.entities;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import java.io.Serializable;
+import java.util.List;
 
 @Entity(tableName = "users")
 public class User implements Serializable {
-    @PrimaryKey(autoGenerate = true)
-    private int id;
+    @PrimaryKey
+    @NonNull
+    private String id;
     private String firstName;
     private String lastName;
     private String username;
@@ -15,13 +18,13 @@ public class User implements Serializable {
     private String gender;
     private String profilePicture;
     private int subscribers;
-
+    private List<Video> videos;
 
     public User() {
     }
 
 
-    public User(int id, String firstName, String lastName, String username, String password, String gender, String profilePicture, int subscribers) {
+    public User(String id, String firstName, String lastName, String username, String password, String gender, String profilePicture, int subscribers) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -33,7 +36,7 @@ public class User implements Serializable {
     }
 
     // Getters
-    public int getId() {
+    public String getId() {
         return id;
     }
 
@@ -70,7 +73,7 @@ public class User implements Serializable {
         this.subscribers = subscribers;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -110,5 +113,13 @@ public class User implements Serializable {
                 ", profilePicture='" + profilePicture + '\'' +
                 ", subscribers=" + subscribers +
                 '}';
+    }
+
+    public List<Video> getVideos() {
+        return videos;
+    }
+
+    public void setVideos(List<Video> videos) {
+        this.videos = videos;
     }
 }

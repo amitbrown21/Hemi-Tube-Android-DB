@@ -20,15 +20,15 @@ public class VideoViewModel extends AndroidViewModel {
         return videoRepository.getAllVideos();
     }
 
-    public LiveData<Video> getVideoById(int videoId) {
+    public LiveData<Video> getVideoById(String videoId) {
         return videoRepository.getVideoById(videoId);
     }
 
-    public LiveData<List<Video>> getVideosForUser(int userId) {
+    public LiveData<List<Video>> getVideosForUser(String userId) {
         return videoRepository.getVideosForUser(userId);
     }
 
-    public void createVideo(int userId, Video video, RepositoryCallback<Video> callback) {
+    public void createVideo(String userId, Video video, RepositoryCallback<Video> callback) {
         videoRepository.createVideo(userId, video, callback);
     }
 
@@ -36,27 +36,27 @@ public class VideoViewModel extends AndroidViewModel {
         videoRepository.updateVideo(video, callback);
     }
 
-    public void deleteVideo(int videoId, RepositoryCallback<Void> callback) {
+    public void deleteVideo(String videoId, RepositoryCallback<Void> callback) {
         videoRepository.deleteVideo(videoId, callback);
     }
 
-    public void incrementViews(int videoId) {
+    public void incrementViews(String videoId) {
         videoRepository.incrementViews(videoId);
     }
 
-    public void incrementLikes(int videoId) {
+    public void incrementLikes(String videoId) {
         videoRepository.incrementLikes(videoId);
     }
 
-    public void decrementLikes(int videoId) {
+    public void decrementLikes(String videoId) {
         videoRepository.decrementLikes(videoId);
     }
 
-    public void incrementDislikes(int videoId) {
+    public void incrementDislikes(String videoId) {
         videoRepository.incrementDislikes(videoId);
     }
 
-    public void decrementDislikes(int videoId) {
+    public void decrementDislikes(String videoId) {
         videoRepository.decrementDislikes(videoId);
     }
 }

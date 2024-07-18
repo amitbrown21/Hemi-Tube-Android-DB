@@ -8,7 +8,7 @@ import java.util.List;
 @Dao
 public interface VideoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insert(Video video);
+    void insert(Video video);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<Video> videos);
@@ -20,7 +20,7 @@ public interface VideoDao {
     void delete(Video video);
 
     @Query("DELETE FROM videos WHERE id = :videoId")
-    void deleteById(int videoId);
+    void deleteById(String videoId);
 
     @Query("SELECT * FROM videos")
     List<Video> getAllVideos();
@@ -29,31 +29,31 @@ public interface VideoDao {
     LiveData<List<Video>> getAllVideosLive();
 
     @Query("SELECT * FROM videos WHERE id = :videoId")
-    Video getVideoById(int videoId);
+    Video getVideoById(String videoId);
 
     @Query("SELECT * FROM videos WHERE id = :videoId")
-    LiveData<Video> getVideoByIdLive(int videoId);
+    LiveData<Video> getVideoByIdLive(String videoId);
 
     @Query("SELECT * FROM videos WHERE ownerId = :userId")
-    List<Video> getVideosForUser(int userId);
+    List<Video> getVideosForUser(String userId);
 
     @Query("SELECT * FROM videos WHERE ownerId = :userId")
-    LiveData<List<Video>> getVideosForUserLive(int userId);
+    LiveData<List<Video>> getVideosForUserLive(String userId);
 
     @Query("UPDATE videos SET views = views + 1 WHERE id = :videoId")
-    void incrementViews(int videoId);
+    void incrementViews(String videoId);
 
     @Query("UPDATE videos SET likes = likes + 1 WHERE id = :videoId")
-    void incrementLikes(int videoId);
+    void incrementLikes(String videoId);
 
     @Query("UPDATE videos SET likes = likes - 1 WHERE id = :videoId")
-    void decrementLikes(int videoId);
+    void decrementLikes(String videoId);
 
     @Query("UPDATE videos SET dislikes = dislikes + 1 WHERE id = :videoId")
-    void incrementDislikes(int videoId);
+    void incrementDislikes(String videoId);
 
     @Query("UPDATE videos SET dislikes = dislikes - 1 WHERE id = :videoId")
-    void decrementDislikes(int videoId);
+    void decrementDislikes(String videoId);
 
     @Query("SELECT * FROM videos WHERE title LIKE :query")
     List<Video> searchVideos(String query);

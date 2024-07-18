@@ -1,39 +1,39 @@
 package com.example.hemi_tube.entities;
 
-import androidx.room.Entity;
+import androidx.annotation.NonNull;
 import androidx.room.PrimaryKey;
-import java.io.Serializable;
 
-@Entity(tableName = "comments")
-public class CommentObj implements Serializable {
-    @PrimaryKey(autoGenerate = true)
-    private int id;
-    private int videoId;
+public class CommentObj {
+    @PrimaryKey
+    @NonNull
+    private String id;
+    private String videoId;
     private String username;
     private String body;
 
     public CommentObj() {
     }
 
-    public CommentObj(int videoId, String username, String body) {
+    public CommentObj(String videoId, String username, String body) {
         this.videoId = videoId;
         this.username = username;
         this.body = body;
     }
 
-    public int getId() {
-        return id;
+    @NonNull
+    public String getId() {
+        return this.id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public int getVideoId() {
+    public String getVideoId() {
         return videoId;
     }
 
-    public void setVideoId(int videoId) {
+    public void setVideoId(String videoId) {
         this.videoId = videoId;
     }
 

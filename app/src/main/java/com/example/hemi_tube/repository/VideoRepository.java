@@ -33,17 +33,17 @@ public class VideoRepository {
         return videoDao.getAllVideosLive();
     }
 
-    public LiveData<Video> getVideoById(int videoId) {
+    public LiveData<Video> getVideoById(String videoId) {
         refreshVideo(videoId);
         return videoDao.getVideoByIdLive(videoId);
     }
 
-    public LiveData<List<Video>> getVideosForUser(int userId) {
+    public LiveData<List<Video>> getVideosForUser(String userId) {
         refreshVideosForUser(userId);
         return videoDao.getVideosForUserLive(userId);
     }
 
-    public void createVideo(int userId, Video video, final RepositoryCallback<Video> callback) {
+    public void createVideo(String userId, Video video, final RepositoryCallback<Video> callback) {
         executor.execute(() -> {
             try {
                 Response<Video> response = apiService.createVideo(userId, video).execute();
@@ -83,7 +83,7 @@ public class VideoRepository {
         });
     }
 
-    public void deleteVideo(int videoId, final RepositoryCallback<Void> callback) {
+    public void deleteVideo(String videoId, final RepositoryCallback<Void> callback) {
         executor.execute(() -> {
             try {
                 Response<Void> response = apiService.deleteVideo(videoId).execute();
@@ -102,7 +102,7 @@ public class VideoRepository {
         });
     }
 
-    public void incrementViews(int videoId) {
+    public void incrementViews(String videoId) {
         executor.execute(() -> {
             videoDao.incrementViews(videoId);
             try {
@@ -114,7 +114,7 @@ public class VideoRepository {
         });
     }
 
-    public void incrementLikes(int videoId) {
+    public void incrementLikes(String videoId) {
         executor.execute(() -> {
             videoDao.incrementLikes(videoId);
             try {
@@ -126,7 +126,7 @@ public class VideoRepository {
         });
     }
 
-    public void decrementLikes(int videoId) {
+    public void decrementLikes(String videoId) {
         executor.execute(() -> {
             videoDao.decrementLikes(videoId);
             try {
@@ -138,7 +138,7 @@ public class VideoRepository {
         });
     }
 
-    public void incrementDislikes(int videoId) {
+    public void incrementDislikes(String videoId) {
         executor.execute(() -> {
             videoDao.incrementDislikes(videoId);
             try {
@@ -150,7 +150,7 @@ public class VideoRepository {
         });
     }
 
-    public void decrementDislikes(int videoId) {
+    public void decrementDislikes(String videoId) {
         executor.execute(() -> {
             videoDao.decrementDislikes(videoId);
             try {
@@ -182,7 +182,7 @@ public class VideoRepository {
         });
     }
 
-    private void refreshVideo(int videoId) {
+    private void refreshVideo(String videoId) {
         executor.execute(() -> {
             try {
                 Response<Video> response = apiService.getVideoById(videoId).execute();
@@ -198,7 +198,7 @@ public class VideoRepository {
         });
     }
 
-    private void refreshVideosForUser(int userId) {
+    private void refreshVideosForUser(String userId) {
         executor.execute(() -> {
             try {
                 Response<List<Video>> response = apiService.getUserVideos(userId).execute();

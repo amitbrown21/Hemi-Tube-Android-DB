@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
-import com.google.gson.JsonElement;
 
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class Utils {
     }
 
     public static User getVideoOwner(Video video, List<User> userList) {
-        int ownerId = video.getOwnerId();
+        String ownerId = video.getOwnerId();
 
         for (User user : userList) {
             if (user.getId() == ownerId) {

@@ -8,7 +8,7 @@ import java.util.List;
 @Dao
 public interface CommentDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insert(CommentObj comment);
+    void insert(CommentObj comment);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<CommentObj> comments);
@@ -20,19 +20,19 @@ public interface CommentDao {
     void delete(CommentObj comment);
 
     @Query("DELETE FROM comments WHERE id = :commentId")
-    void deleteById(int commentId);
+    void deleteById(String commentId);
 
     @Query("SELECT * FROM comments WHERE videoId = :videoId ORDER BY id DESC")
-    List<CommentObj> getCommentsForVideo(int videoId);
+    List<CommentObj> getCommentsForVideo(String videoId);
 
     @Query("SELECT * FROM comments WHERE videoId = :videoId ORDER BY id DESC")
-    LiveData<List<CommentObj>> getCommentsForVideoLive(int videoId);
+    LiveData<List<CommentObj>> getCommentsForVideoLive(String videoId);
 
     @Query("SELECT * FROM comments WHERE id = :commentId")
-    CommentObj getCommentById(int commentId);
+    CommentObj getCommentById(String commentId);
 
     @Query("SELECT * FROM comments WHERE id = :commentId")
-    LiveData<CommentObj> getCommentByIdLive(int commentId);
+    LiveData<CommentObj> getCommentByIdLive(String  commentId);
 
     @Query("SELECT * FROM comments WHERE username = :username")
     List<CommentObj> getCommentsByUser(String username);

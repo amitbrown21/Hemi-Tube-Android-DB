@@ -75,8 +75,8 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void handleIntent(Intent intent) {
-        int videoId = intent.getIntExtra("videoId", -1);
-        int currentUserId = intent.getIntExtra("currentUserId", -1);
+        String videoId = intent.getIntExtra("videoId", -1);
+        String currentUserId = intent.getIntExtra("currentUserId", -1);
 
         executorService.execute(() -> {
             currentVideo = videoDao.getVideoById(videoId);

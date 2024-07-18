@@ -8,7 +8,7 @@ import java.util.List;
 @Dao
 public interface UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insert(User user);
+    void insert(User user);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<User> users);
@@ -20,7 +20,7 @@ public interface UserDao {
     void delete(User user);
 
     @Query("DELETE FROM users WHERE id = :userId")
-    void deleteById(int userId);
+    void deleteById(String  userId);
 
     @Query("SELECT * FROM users")
     List<User> getAllUsers();
@@ -29,10 +29,10 @@ public interface UserDao {
     LiveData<List<User>> getAllUsersLive();
 
     @Query("SELECT * FROM users WHERE id = :userId")
-    User getUserById(int userId);
+    User getUserById(String userId);
 
     @Query("SELECT * FROM users WHERE id = :userId")
-    LiveData<User> getUserByIdLive(int userId);
+    LiveData<User> getUserByIdLive(String userId);
 
     @Query("SELECT * FROM users WHERE username = :username")
     User getUserByUsername(String username);
@@ -44,14 +44,14 @@ public interface UserDao {
     User getUserForLogin(String username, String password);
 
     @Query("UPDATE users SET subscribers = subscribers + 1 WHERE id = :userId")
-    void incrementSubscribers(int userId);
+    void incrementSubscribers(String userId);
 
     @Query("UPDATE users SET subscribers = subscribers - 1 WHERE id = :userId")
-    void decrementSubscribers(int userId);
+    void decrementSubscribers(String userId);
 
     @Query("SELECT EXISTS(SELECT 1 FROM users WHERE username = :username)")
     boolean isUsernameExists(String username);
 
     @Query("UPDATE users SET profilePicture = :profilePicturePath WHERE id = :userId")
-    void updateProfilePicture(int userId, String profilePicturePath);
+    void updateProfilePicture(String userId, String profilePicturePath);
 }

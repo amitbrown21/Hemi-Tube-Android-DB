@@ -23,25 +23,25 @@ public interface ApiService {
     Call<List<User>> getAllUsers();
 
     @GET("users/{id}")
-    Call<User> getUserById(@Path("id") int userId);
+    Call<User> getUserById(@Path("id") String userId);
 
     @GET("users/{username}")
     Call<User> getUserByUsername(@Path("username") String username);
 
     @GET("videos/{videoId}/comments")
-    Call<List<CommentObj>> getCommentsByVideoId(@Path("videoId") int videoId);
+    Call<List<CommentObj>> getCommentsByVideoId(@Path("videoId") String videoId);
 
     @POST("users")
     Call<User> createUser(@Body User user);
 
     @PUT("users/{id}")
-    Call<User> updateUser(@Path("id") int userId, @Body User user);
+    Call<User> updateUser(@Path("id") String userId, @Body User user);
 
     @DELETE("users/{id}")
-    Call<Void> deleteUser(@Path("id") int userId);
+    Call<Void> deleteUser(@Path("id") String userId);
 
     @GET("users/{id}/videos")
-    Call<List<Video>> getUserVideos(@Path("id") int userId);
+    Call<List<Video>> getUserVideos(@Path("id") String userId);
 
     @POST("users/login")
     Call<LoginResponse> login(@Body LoginRequest loginRequest);
@@ -54,31 +54,31 @@ public interface ApiService {
     Call<VideoResponse> getAllVideos();
 
     @GET("videos/{pid}")
-    Call<Video> getVideoById(@Path("pid") int videoId);
+    Call<Video> getVideoById(@Path("pid") String videoId);
 
     @POST("users/{id}/videos")
-    Call<Video> createVideo(@Path("id") int userId, @Body Video video);
+    Call<Video> createVideo(@Path("id") String userId, @Body Video video);
 
     @PUT("videos/{pid}")
-    Call<Video> updateVideo(@Path("pid") int videoId, @Body Video video);
+    Call<Video> updateVideo(@Path("pid") String videoId, @Body Video video);
 
     @DELETE("videos/{pid}")
-    Call<Void> deleteVideo(@Path("pid") int videoId);
+    Call<Void> deleteVideo(@Path("pid") String videoId);
 
     @POST("videos/{pid}/incrementViews")
-    Call<Video> incrementViews(@Path("pid") int videoId);
+    Call<Video> incrementViews(@Path("pid") String videoId);
 
     @POST("videos/{pid}/incrementLikes")
-    Call<Video> incrementLikes(@Path("pid") int videoId);
+    Call<Video> incrementLikes(@Path("pid") String videoId);
 
     @POST("videos/{pid}/decrementLikes")
-    Call<Video> decrementLikes(@Path("pid") int videoId);
+    Call<Video> decrementLikes(@Path("pid") String videoId);
 
     @POST("videos/{pid}/incrementDislikes")
-    Call<Video> incrementDislikes(@Path("pid") int videoId);
+    Call<Video> incrementDislikes(@Path("pid") String videoId);
 
     @POST("videos/{pid}/decrementDislikes")
-    Call<Video> decrementDislikes(@Path("pid") int videoId);
+    Call<Video> decrementDislikes(@Path("pid") String videoId);
 
     @GET("videos/all")
     Call<List<Video>> getAllVideosWithTopAndRandom();
@@ -88,16 +88,16 @@ public interface ApiService {
     Call<List<CommentObj>> getCommentsByVideoId(@Path("id") int userId, @Path("pid") int videoId);
 
     @POST("users/{id}/videos/{pid}/comments")
-    Call<CommentObj> createComment(@Path("id") int userId, @Path("pid") int videoId, @Body CommentObj comment);
+    Call<CommentObj> createComment(@Path("id") String userId, @Path("pid") String videoId, @Body CommentObj comment);
 
     @GET("users/{id}/videos/{pid}/comments/{commentId}")
-    Call<CommentObj> getCommentById(@Path("id") int userId, @Path("pid") int videoId, @Path("commentId") int commentId);
+    Call<CommentObj> getCommentById(@Path("id") String userId, @Path("pid") String videoId, @Path("commentId") String commentId);
 
     @PUT("users/{id}/videos/{pid}/comments/{commentId}")
-    Call<CommentObj> updateComment(@Path("id") int userId, @Path("pid") int videoId, @Path("commentId") int commentId, @Body CommentObj comment);
+    Call<CommentObj> updateComment(@Path("id") String userId, @Path("pid") String videoId, @Path("commentId") String commentId, @Body CommentObj comment);
 
     @DELETE("users/{id}/videos/{pid}/comments/{commentId}")
-    Call<Void> deleteComment(@Path("id") int userId, @Path("pid") int videoId, @Path("commentId") int commentId);
+    Call<Void> deleteComment(@Path("id") String userId, @Path("pid") String videoId, @Path("commentId") String commentId);
 
 
     // Additional classes for login
@@ -118,9 +118,9 @@ public interface ApiService {
 
     public class LoginResponse {
         public String token;
-        public int userId;
+        public String userId;
 
-        public LoginResponse(String token, int userId) {
+        public LoginResponse(String token, String userId) {
             this.token = token;
             this.userId = userId;
         }

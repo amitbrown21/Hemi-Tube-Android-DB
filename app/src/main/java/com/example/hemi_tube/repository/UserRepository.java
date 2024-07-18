@@ -27,7 +27,7 @@ public class UserRepository {
         executor = Executors.newSingleThreadExecutor();
     }
 
-    public LiveData<User> getUserById(int userId) {
+    public LiveData<User> getUserById(String userId) {
         refreshUser(userId);
         return userDao.getUserByIdLive(userId);
     }
@@ -82,7 +82,7 @@ public class UserRepository {
         });
     }
 
-    public void deleteUser(int userId, final RepositoryCallback<Void> callback) {
+    public void deleteUser(String userId, final RepositoryCallback<Void> callback) {
         executor.execute(() -> {
             try {
                 Response<Void> response = apiService.deleteUser(userId).execute();
@@ -119,7 +119,7 @@ public class UserRepository {
         });
     }
 
-    private void refreshUser(int userId) {
+    private void refreshUser(String userId) {
         executor.execute(() -> {
             try {
                 Response<User> response = apiService.getUserById(userId).execute();

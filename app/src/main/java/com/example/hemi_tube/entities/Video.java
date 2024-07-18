@@ -11,11 +11,12 @@ import java.util.List;
 
 @Entity(tableName = "videos")
 public class Video implements Serializable, Cloneable {
-    @PrimaryKey(autoGenerate = true)
-    private int id;
+    @PrimaryKey
+    @NonNull
+    private String id;
     private String url;
     private String title;
-    private int ownerId;
+    private String ownerId;
     private String date;
     private int views;
     private int likes;
@@ -30,7 +31,7 @@ public class Video implements Serializable, Cloneable {
     public Video() {
     }
 
-    public Video(int id, String url, String title, int ownerId, String date, int views, int likes, int dislikes, String thumbnail, String description, String duration, List<CommentObj> comments) {
+    public Video(String id, String url, String title, String ownerId, String date, int views, int likes, int dislikes, String thumbnail, String description, String duration, List<CommentObj> comments) {
         this.id = id;
         this.url = url;
         this.title = title;
@@ -46,7 +47,7 @@ public class Video implements Serializable, Cloneable {
     }
 
     // Getters
-    public int getId() {
+    public String getId() {
         return id;
     }
 
@@ -58,7 +59,7 @@ public class Video implements Serializable, Cloneable {
         return title;
     }
 
-    public int getOwnerId() {
+    public String getOwnerId() {
         return ownerId;
     }
 
@@ -99,7 +100,7 @@ public class Video implements Serializable, Cloneable {
         this.views = views;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -111,7 +112,7 @@ public class Video implements Serializable, Cloneable {
         this.title = title;
     }
 
-    public void setOwnerId(int ownerId) {
+    public void setOwnerId(String ownerId) {
         this.ownerId = ownerId;
     }
 

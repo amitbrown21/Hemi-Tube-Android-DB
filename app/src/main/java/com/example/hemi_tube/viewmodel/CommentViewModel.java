@@ -16,19 +16,19 @@ public class CommentViewModel extends AndroidViewModel {
         commentRepository = new CommentRepository(application);
     }
 
-    public LiveData<List<CommentObj>> getCommentsForVideo(int videoId) {
+    public LiveData<List<CommentObj>> getCommentsForVideo(String videoId) {
         return commentRepository.getCommentsForVideo(videoId);
     }
 
-    public void createComment(int userId, int videoId, CommentObj comment, RepositoryCallback<CommentObj> callback) {
+    public void createComment(String userId, String videoId, CommentObj comment, RepositoryCallback<CommentObj> callback) {
         commentRepository.createComment(userId, videoId, comment, callback);
     }
 
-    public void updateComment(int userId, int videoId, CommentObj comment, RepositoryCallback<CommentObj> callback) {
+    public void updateComment(String userId, String videoId, CommentObj comment, RepositoryCallback<CommentObj> callback) {
         commentRepository.updateComment(userId, videoId, comment, callback);
     }
 
-    public void deleteComment(int userId, int videoId, int commentId, RepositoryCallback<Void> callback) {
+    public void deleteComment(String userId, String videoId, String commentId, RepositoryCallback<Void> callback) {
         commentRepository.deleteComment(userId, videoId, commentId, callback);
     }
 }

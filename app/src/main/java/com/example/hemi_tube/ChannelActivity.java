@@ -57,7 +57,7 @@ public class ChannelActivity extends AppCompatActivity {
         userDao = database.userDao();
         videoDao = database.videoDao();
 
-        int userId = getIntent().getIntExtra("userId", -1);
+        String userId = getIntent().getIntExtra("userId", -1);
         if (userId == -1) {
             finish();
             return;
@@ -66,7 +66,7 @@ public class ChannelActivity extends AppCompatActivity {
         loadChannelData(userId);
     }
 
-    private void loadChannelData(int userId) {
+    private void loadChannelData(String userId) {
         new Thread(() -> {
             channelUser = userDao.getUserById(userId);
             List<Video> userVideos = videoDao.getVideosForUser(userId);

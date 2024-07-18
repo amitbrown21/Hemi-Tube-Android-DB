@@ -17,7 +17,7 @@ public class UserViewModel extends AndroidViewModel {
         userRepository = new UserRepository(application);
     }
 
-    public LiveData<User> getUserById(int userId) {
+    public LiveData<User> getUserById(String userId) {
         return userRepository.getUserById(userId);
     }
 
@@ -37,7 +37,7 @@ public class UserViewModel extends AndroidViewModel {
         userRepository.updateUser(user, callback);
     }
 
-    public void deleteUser(int userId, RepositoryCallback<Void> callback) {
+    public void deleteUser(String userId, RepositoryCallback<Void> callback) {
         userRepository.deleteUser(userId, callback);
     }
 

@@ -27,12 +27,12 @@ public class CommentRepository {
         executor = Executors.newSingleThreadExecutor();
     }
 
-    public LiveData<List<CommentObj>> getCommentsForVideo(int videoId) {
+    public LiveData<List<CommentObj>> getCommentsForVideo(String videoId) {
         refreshComments(videoId);
         return commentDao.getCommentsForVideoLive(videoId);
     }
 
-    public void createComment(int userId, int videoId, CommentObj comment, final RepositoryCallback<CommentObj> callback) {
+    public void createComment(String userId, String videoId, CommentObj comment, final RepositoryCallback<CommentObj> callback) {
         executor.execute(() -> {
             try {
                 Response<CommentObj> response = apiService.createComment(userId, videoId, comment).execute();
@@ -52,7 +52,7 @@ public class CommentRepository {
         });
     }
 
-    public void updateComment(int userId, int videoId, CommentObj comment, final RepositoryCallback<CommentObj> callback) {
+    public void updateComment(String userId, String videoId, CommentObj comment, final RepositoryCallback<CommentObj> callback) {
         executor.execute(() -> {
             try {
                 Response<CommentObj> response = apiService.updateComment(userId, videoId, comment.getId(), comment).execute();
@@ -72,7 +72,7 @@ public class CommentRepository {
         });
     }
 
-    public void deleteComment(int userId, int videoId, int commentId, final RepositoryCallback<Void> callback) {
+    public void deleteComment(String userId, String videoId, String commentId, final RepositoryCallback<Void> callback) {
         executor.execute(() -> {
             try {
                 Response<Void> response = apiService.deleteComment(userId, videoId, commentId).execute();
@@ -91,7 +91,7 @@ public class CommentRepository {
         });
     }
 
-    private void refreshComments(int videoId) {
+    private void refreshComments(String videoId) {
         executor.execute(() -> {
             try {
                 Response<List<CommentObj>> response = apiService.getCommentsByVideoId(videoId).execute();

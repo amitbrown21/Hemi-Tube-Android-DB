@@ -170,8 +170,34 @@ public class VideoRepository {
                     VideoResponse videoResponse = response.body();
                     List<Video> topVideos = videoResponse.getTopVideos();
                     List<Video> otherVideos = videoResponse.getOtherVideos();
-                    videoDao.insertAll(topVideos);
-                    videoDao.insertAll(otherVideos);
+
+                    // Ensure all videos have a valid id
+                    if (topVideos != null) {
+                        for (Video video : topVideos) {
+                            if (video.getId() == null && video.get_id() != null) {
+                                video.setId(video.get_id());
+                            }
+                            if (video.getId() == null) {
+                                Log.e(TAG, "Video id is null for video: " + video.getTitle());
+                                continue; // Skip videos with null id
+                            }
+                        }
+                        videoDao.insertAll(topVideos);
+                    }
+
+                    if (otherVideos != null) {
+                        for (Video video : otherVideos) {
+                            if (video.getId() == null && video.get_id() != null) {
+                                video.setId(video.get_id());
+                            }
+                            if (video.getId() == null) {
+                                Log.e(TAG, "Video id is null for video: " + video.getTitle());
+                                continue; // Skip videos with null id
+                            }
+                        }
+                        videoDao.insertAll(otherVideos);
+                    }
+
                     Log.d(TAG, "Videos refreshed successfully");
                 } else {
                     Log.e(TAG, "Failed to refresh videos: " + response.message());

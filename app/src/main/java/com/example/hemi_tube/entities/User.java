@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
+import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import java.util.List;
 public class User implements Serializable {
     @PrimaryKey
     @NonNull
+    @SerializedName("_id")
     private String id;
     private String firstName;
     private String lastName;
@@ -20,11 +22,10 @@ public class User implements Serializable {
     private String profilePicture;
     private int subscribers;
     @Ignore
-    private List<Video> videos;
+    private List<String> videosID;
 
     public User() {
     }
-
 
     public User(String id, String firstName, String lastName, String username, String password, String gender, String profilePicture, int subscribers) {
         this.id = id;
@@ -37,76 +38,84 @@ public class User implements Serializable {
         this.subscribers = subscribers;
     }
 
-    // Getters
+    // Getters and Setters
+
     public String getId() {
         return id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public String getProfilePicture() {
-        return profilePicture;
-    }
-
-    public int getSubscribers() {
-        return subscribers;
-    }
-
-    // Setters
-    public void setSubscribers(int subscribers) {
-        this.subscribers = subscribers;
     }
 
     public void setId(String id) {
         this.id = id;
     }
 
+    public String getFirstName() {
+        return firstName;
+    }
+
     public void setFirstName(String firstName) {
         this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
     }
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public void setPassword(String password) {
         this.password = password;
     }
 
+    public String getGender() {
+        return gender;
+    }
+
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
     }
 
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
     }
 
+    public int getSubscribers() {
+        return subscribers;
+    }
+
+    public void setSubscribers(int subscribers) {
+        this.subscribers = subscribers;
+    }
+
+    public List<String> getVideosID() {
+        return videosID;
+    }
+
+    public void setVideosID(List<String> videosID) {
+        this.videosID = videosID;
+    }
+
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
+                "id='" + id + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", username='" + username + '\'' +
@@ -114,14 +123,7 @@ public class User implements Serializable {
                 ", gender='" + gender + '\'' +
                 ", profilePicture='" + profilePicture + '\'' +
                 ", subscribers=" + subscribers +
+                ", videosID=" + videosID +
                 '}';
-    }
-
-    public List<Video> getVideos() {
-        return videos;
-    }
-
-    public void setVideos(List<Video> videos) {
-        this.videos = videos;
     }
 }

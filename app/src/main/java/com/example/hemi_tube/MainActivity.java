@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
 
     private VideoRepository videoRepository;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent.hasExtra("currentUser")) {
             currentUser = (User) intent.getSerializableExtra("currentUser");
+            Log.d(TAG, "Received user: " + currentUser.getUsername());
             isSignedIn = true;
         }
 

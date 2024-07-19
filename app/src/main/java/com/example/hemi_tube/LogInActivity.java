@@ -3,6 +3,8 @@ package com.example.hemi_tube;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -75,16 +77,28 @@ public class LogInActivity extends AppCompatActivity {
                     SharedPreferences prefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE);
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("jwt_token", result.token);
-                    editor.putString("user_id", result.userId);  // Changed to putString
+                    editor.putString("user_id", result.userId);
                     editor.apply();
 
                     Toast.makeText(LogInActivity.this, "Sign in successful", Toast.LENGTH_SHORT).show();
 
-                    // Start MainActivity and clear the activity stack
-                    Intent mainIntent = new Intent(LogInActivity.this, MainActivity.class);
-                    mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(mainIntent);
-                    finish();
+                    // Add a slight delay before fetching the user data
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        userViewModel.getUserById(result.userId).observe(LogInActivity.this, user -> {
+                            if (user != null) {
+                                Log.d(TAG, "User retrieved successfully: " + user.toString());
+                                // Start MainActivity and clear the activity stack
+                                Intent mainIntent = new Intent(LogInActivity.this, MainActivity.class);
+                                mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                mainIntent.putExtra("currentUser", user);
+                                startActivity(mainIntent);
+                                finish();
+                            } else {
+                                Log.e(TAG, "Failed to retrieve user: User is null");
+                                runOnUiThread(() -> Toast.makeText(LogInActivity.this, "Failed to retrieve user information", Toast.LENGTH_SHORT).show());
+                            }
+                        });
+                    }, 1000); // 1 second delay
                 });
             }
 

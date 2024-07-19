@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.bumptech.glide.Glide;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.repository.RepositoryCallback;
 import com.example.hemi_tube.viewmodel.UserViewModel;
@@ -72,7 +73,7 @@ public class SignUpActivity extends AppCompatActivity {
                 Toast.makeText(SignUpActivity.this, "Password must be 8-20 characters long and contain only English letters and numbers", Toast.LENGTH_SHORT).show();
             } else {
                 String profilePictureUri = (profileImageUri != null) ? profileImageUri.toString() : "drawable/placeholder";
-                User newUser = new User("0", firstName, lastName, username, password, gender, profilePictureUri, 0);
+                User newUser = new User(null, firstName, lastName, username, password, gender, profilePictureUri, 0); // Use null for id and _id
                 createUser(newUser);
             }
         });
@@ -85,11 +86,10 @@ public class SignUpActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     Toast.makeText(SignUpActivity.this, "User created successfully", Toast.LENGTH_SHORT).show();
 
-                    Intent mainIntent = new Intent(SignUpActivity.this, MainActivity.class);
-                    mainIntent.putExtra("currentUser", result);
-                    mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    Intent loginIntent = new Intent(SignUpActivity.this, LogInActivity.class);
+                    loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                    startActivity(mainIntent);
+                    startActivity(loginIntent);
                     finish();
                 });
             }
@@ -123,7 +123,11 @@ public class SignUpActivity extends AppCompatActivity {
                 try {
                     final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                     getContentResolver().takePersistableUriPermission(profileImageUri, takeFlags);
-                    selectImageButton.setImageURI(profileImageUri);
+                    Glide.with(this)
+                            .load(profileImageUri)
+                            .placeholder(R.drawable.profile)
+                            .error(R.drawable.profile)
+                            .into(selectImageButton);
                 } catch (SecurityException e) {
                     Log.e(TAG, "Failed to take persistable URI permission", e);
                     Toast.makeText(this, "Failed to access the selected image", Toast.LENGTH_SHORT).show();

@@ -14,6 +14,9 @@ public class Video implements Serializable, Cloneable {
     @PrimaryKey
     @NonNull
     private String id;
+    @Ignore
+    private String _id; // Add this field to handle MongoDB _id
+
     private String url;
     private String title;
     private String ownerId;
@@ -26,7 +29,6 @@ public class Video implements Serializable, Cloneable {
     private String duration;
     @Ignore
     private List<CommentObj> comments;
-
 
     public Video() {
     }
@@ -49,6 +51,10 @@ public class Video implements Serializable, Cloneable {
     // Getters
     public String getId() {
         return id;
+    }
+
+    public String get_id() {
+        return _id;
     }
 
     public String getUrl() {
@@ -96,12 +102,12 @@ public class Video implements Serializable, Cloneable {
     }
 
     // Setters
-    public void setViews(int views) {
-        this.views = views;
-    }
-
     public void setId(String id) {
         this.id = id;
+    }
+
+    public void set_id(String _id) {
+        this._id = _id;
     }
 
     public void setUrl(String url) {
@@ -120,8 +126,8 @@ public class Video implements Serializable, Cloneable {
         this.date = date;
     }
 
-    public void increaseViews() {
-        this.views = this.views + 1;
+    public void setViews(int views) {
+        this.views = views;
     }
 
     public void setLikes(int likes) {
@@ -147,6 +153,7 @@ public class Video implements Serializable, Cloneable {
     public void setComments(List<CommentObj> comments) {
         this.comments = comments;
     }
+
     public void addComment(CommentObj newComment) {
         this.comments.add(newComment);
     }
@@ -154,10 +161,11 @@ public class Video implements Serializable, Cloneable {
     @Override
     public String toString() {
         return "Video{" +
-                "id=" + id +
+                "id='" + id + '\'' +
+                ", _id='" + _id + '\'' +
                 ", url='" + url + '\'' +
                 ", title='" + title + '\'' +
-                ", ownerId=" + ownerId +
+                ", ownerId='" + ownerId + '\'' +
                 ", date='" + date + '\'' +
                 ", views=" + views +
                 ", likes=" + likes +
@@ -174,7 +182,6 @@ public class Video implements Serializable, Cloneable {
     public Video clone() {
         try {
             Video clone = (Video) super.clone();
-
             clone.comments = new ArrayList<>(this.comments);
             return clone;
         } catch (CloneNotSupportedException e) {

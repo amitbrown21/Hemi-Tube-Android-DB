@@ -2,16 +2,20 @@ package com.example.hemi_tube.repository;
 
 import android.content.Context;
 import android.util.Log;
+
 import androidx.lifecycle.LiveData;
+
 import com.example.hemi_tube.dao.UserDao;
 import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.network.ApiService;
 import com.example.hemi_tube.network.RetrofitClient;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
 import retrofit2.Response;
 
 public class UserRepository {
@@ -124,8 +128,12 @@ public class UserRepository {
             try {
                 Response<User> response = apiService.getUserById(userId).execute();
                 if (response.isSuccessful() && response.body() != null) {
-                    userDao.insert(response.body());
-                    Log.d(TAG, "User refreshed successfully: " + userId);
+                    User user = response.body();
+                    Log.d(TAG, "Fetched user from API: " + user.toString());
+                    userDao.insert(user);
+                    Log.d(TAG, "User refreshed successfully: " + user.toString());
+                } else {
+                    Log.e(TAG, "Failed to refresh user: " + response.message());
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Error refreshing user", e);
@@ -138,8 +146,11 @@ public class UserRepository {
             try {
                 Response<User> response = apiService.getUserByUsername(username).execute();
                 if (response.isSuccessful() && response.body() != null) {
-                    userDao.insert(response.body());
-                    Log.d(TAG, "User refreshed successfully: " + username);
+                    User user = response.body();
+                    userDao.insert(user);
+                    Log.d(TAG, "User refreshed successfully: " + user.toString());
+                } else {
+                    Log.e(TAG, "Failed to refresh user by username: " + response.message());
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Error refreshing user by username", e);
@@ -154,6 +165,8 @@ public class UserRepository {
                 if (response.isSuccessful() && response.body() != null) {
                     userDao.insertAll(response.body());
                     Log.d(TAG, "All users refreshed successfully");
+                } else {
+                    Log.e(TAG, "Failed to refresh all users: " + response.message());
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Error refreshing all users", e);

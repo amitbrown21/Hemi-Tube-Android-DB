@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase;
 import com.example.hemi_tube.dao.*;
 import com.example.hemi_tube.entities.*;
 
-@Database(entities = {User.class, Video.class, CommentObj.class}, version = 2)
+@Database(entities = {User.class, Video.class, CommentObj.class}, version = 3)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
 

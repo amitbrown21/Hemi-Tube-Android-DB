@@ -3,7 +3,7 @@ package com.example.hemi_tube.network;
 import com.example.hemi_tube.entities.CommentObj;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
-import com.example.hemi_tube.entities.VideoResponse;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
@@ -125,6 +125,29 @@ public interface ApiService {
         public LoginResponse(String token, String userId) {
             this.token = token;
             this.userId = userId;
+        }
+    }
+    class VideoResponse {
+        @SerializedName("topVideos")
+        private List<Video> topVideos;
+
+        @SerializedName("otherVideos")
+        private List<Video> otherVideos;
+
+        public List<Video> getTopVideos() {
+            return topVideos;
+        }
+
+        public List<Video> getOtherVideos() {
+            return otherVideos;
+        }
+
+        @Override
+        public String toString() {
+            return "VideoResponse{" +
+                    "topVideos=" + topVideos +
+                    ", otherVideos=" + otherVideos +
+                    '}';
         }
     }
 }

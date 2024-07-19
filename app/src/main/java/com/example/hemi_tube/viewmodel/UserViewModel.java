@@ -1,12 +1,19 @@
 package com.example.hemi_tube.viewmodel;
 
+import static android.content.ContentValues.TAG;
+
 import android.app.Application;
+import android.util.Log;
+
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
 import com.example.hemi_tube.entities.User;
-import com.example.hemi_tube.repository.UserRepository;
-import com.example.hemi_tube.repository.RepositoryCallback;
 import com.example.hemi_tube.network.ApiService;
+import com.example.hemi_tube.repository.RepositoryCallback;
+import com.example.hemi_tube.repository.UserRepository;
+
 import java.util.List;
 
 public class UserViewModel extends AndroidViewModel {
@@ -18,6 +25,10 @@ public class UserViewModel extends AndroidViewModel {
     }
 
     public LiveData<User> getUserById(String userId) {
+        if (userId == null || userId.isEmpty()) {
+            Log.w(TAG, "Attempted to get user with null or empty ID");
+            return new MutableLiveData<>(null);
+        }
         return userRepository.getUserById(userId);
     }
 

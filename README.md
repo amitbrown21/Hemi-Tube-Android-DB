@@ -24,10 +24,11 @@ Our team started the development process by focusing on the website. We divided 
   - React
 
 ### Android App
-
 - Language: Java
+- Server: Javascript
 - Android SDK
-- Room for Database 
+- Room for Database
+- MongoDB
 
 ## Setup and Installation
 ### Website

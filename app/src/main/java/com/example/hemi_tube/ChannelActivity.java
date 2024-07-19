@@ -57,8 +57,8 @@ public class ChannelActivity extends AppCompatActivity {
         userDao = database.userDao();
         videoDao = database.videoDao();
 
-        String userId = getIntent().getIntExtra("userId", -1);
-        if (userId == -1) {
+        String userId = getIntent().getStringExtra("userId");
+        if (userId == null || userId.isEmpty()) {
             finish();
             return;
         }

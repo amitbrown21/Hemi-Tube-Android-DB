@@ -75,12 +75,12 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void handleIntent(Intent intent) {
-        String videoId = intent.getIntExtra("videoId", -1);
-        String currentUserId = intent.getIntExtra("currentUserId", -1);
+        String videoId = String.valueOf(intent.getIntExtra("videoId", -1));
+        String currentUserId = String.valueOf(intent.getIntExtra("currentUserId", -1));
 
         executorService.execute(() -> {
             currentVideo = videoDao.getVideoById(videoId);
-            currentUser = currentUserId != -1 ? userDao.getUserById(currentUserId) : null;
+            currentUser = currentUserId != "-1" ? userDao.getUserById(currentUserId) : null;
             owner = userDao.getUserById(currentVideo.getOwnerId());
             runOnUiThread(this::updateUI);
         });

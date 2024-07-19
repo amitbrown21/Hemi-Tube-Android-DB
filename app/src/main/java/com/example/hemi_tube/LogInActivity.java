@@ -75,7 +75,7 @@ public class LogInActivity extends AppCompatActivity {
                     SharedPreferences prefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE);
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("jwt_token", result.token);
-                    editor.putInt("user_id", result.userId);
+                    editor.putString("user_id", result.userId);  // Changed to putString
                     editor.apply();
 
                     Toast.makeText(LogInActivity.this, "Sign in successful", Toast.LENGTH_SHORT).show();

@@ -2,6 +2,7 @@ package com.example.hemi_tube.entities;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import java.io.Serializable;
 import java.util.List;
@@ -18,6 +19,7 @@ public class User implements Serializable {
     private String gender;
     private String profilePicture;
     private int subscribers;
+    @Ignore
     private List<Video> videos;
 
     public User() {

@@ -12,12 +12,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -49,7 +51,7 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
         Video currVideo = videoList.get(position);
         holder.title.setText(currVideo.getTitle());
 
-        userViewModel.getUserById(currVideo.getOwnerId()).observe((MainActivity) context, owner -> {
+        userViewModel.getUserById(currVideo.getOwner()).observe((LifecycleOwner) context, owner -> {
             if (owner != null) {
                 String views = Utils.formatNumber(currVideo.getViews());
                 String metadata = owner.getUsername() + "  " + views + " views  " + currVideo.getDate();
@@ -85,41 +87,25 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
         notifyDataSetChanged();
     }
 
-    private void setThumbnail(ImageButton imageButton, String thumbnailPath) {
-        if (thumbnailPath != null && thumbnailPath.startsWith("content://")) {
-            try {
-                imageButton.setImageURI(Uri.parse(thumbnailPath));
-            } catch (SecurityException e) {
-                Log.e("VideoRecyclerViewAdapter", "No access to content URI for thumbnail", e);
-                imageButton.setImageResource(R.drawable.thumbnail_placeholder);
-            }
-        } else if (thumbnailPath != null && thumbnailPath.contains("/")) {
-            int resourceId = context.getResources().getIdentifier(
-                    thumbnailPath.substring(thumbnailPath.lastIndexOf("/") + 1, thumbnailPath.lastIndexOf(".")),
-                    "drawable",
-                    context.getPackageName()
-            );
-            imageButton.setImageResource(resourceId != 0 ? resourceId : R.drawable.thumbnail_placeholder);
+    private void setThumbnail(ImageButton imageButton, String thumbnailUri) {
+        if (thumbnailUri != null && !thumbnailUri.isEmpty()) {
+            Picasso.get()
+                    .load(thumbnailUri.startsWith("http") ? thumbnailUri : "file://" + thumbnailUri)
+                    .resize(200, 200) // Resize image to reduce memory usage
+                    .centerCrop()
+                    .into(imageButton);
         } else {
             imageButton.setImageResource(R.drawable.thumbnail_placeholder);
         }
     }
 
     private void setProfilePicture(ImageView imageView, String picturePath) {
-        if (picturePath != null && picturePath.startsWith("content://")) {
-            try {
-                imageView.setImageURI(Uri.parse(picturePath));
-            } catch (SecurityException e) {
-                Log.e("VideoRecyclerViewAdapter", "No access to content URI for profile picture", e);
-                imageView.setImageResource(R.drawable.profile);
-            }
-        } else if (picturePath != null && picturePath.contains("/")) {
-            int resourceId = context.getResources().getIdentifier(
-                    picturePath.substring(picturePath.lastIndexOf("/") + 1, picturePath.lastIndexOf(".")),
-                    "drawable",
-                    context.getPackageName()
-            );
-            imageView.setImageResource(resourceId != 0 ? resourceId : R.drawable.profile);
+        if (picturePath != null && !picturePath.isEmpty()) {
+            Picasso.get()
+                    .load(picturePath.startsWith("http") ? picturePath : "file://" + picturePath)
+                    .resize(100, 100) // Resize image to reduce memory usage
+                    .centerCrop()
+                    .into(imageView);
         } else {
             imageView.setImageResource(R.drawable.profile);
         }

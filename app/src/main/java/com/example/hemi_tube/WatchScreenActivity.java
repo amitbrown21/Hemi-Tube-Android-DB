@@ -90,10 +90,10 @@ public class WatchScreenActivity extends AppCompatActivity {
 
     private void loadOwner() {
         if (currentVideo != null) {
-            userViewModel.getUserById(currentVideo.getOwnerId()).observe(this, user -> {
-                owner = user;
-                updateUI();
-            });
+            //userViewModel.getUserById(currentVideo.getOwnerId()).observe(this, user -> {
+                //owner = user;
+                //updateUI();
+            //});
         }
     }
 
@@ -254,7 +254,7 @@ public class WatchScreenActivity extends AppCompatActivity {
 
     private void setupEditButton() {
         Button editButton = findViewById(R.id.editButton);
-        editButton.setVisibility(currentUser != null && currentVideo != null && currentUser.getId().equals(currentVideo.getOwnerId()) ? View.VISIBLE : View.GONE);
+        //editButton.setVisibility(currentUser != null && currentVideo != null && currentUser.getId().equals(currentVideo.getOwnerId()) ? View.VISIBLE : View.GONE);
         editButton.setOnClickListener(v -> showEditDialog());
     }
 

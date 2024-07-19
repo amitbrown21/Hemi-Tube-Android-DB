@@ -10,6 +10,7 @@ import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.network.ApiService;
 import com.example.hemi_tube.network.RetrofitClient;
+import com.example.hemi_tube.repository.RepositoryCallback;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,6 +18,9 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
 import retrofit2.Response;
 
 public class VideoRepository {
@@ -227,6 +231,7 @@ public class VideoRepository {
             }
         });
     }
+
     public LiveData<List<Video>> searchVideos(String query) {
         refreshSearchVideos(query);
         return videoDao.searchVideosLive("%" + query + "%");
@@ -246,5 +251,9 @@ public class VideoRepository {
                 Log.e(TAG, "Error refreshing search videos", e);
             }
         });
+    }
+
+    public Call<Video> uploadVideo(RequestBody userIdPart, RequestBody titlePart, RequestBody descriptionPart, MultipartBody.Part videoPart, MultipartBody.Part thumbnailPart) {
+        return apiService.uploadVideo(userIdPart, titlePart, descriptionPart, videoPart, thumbnailPart);
     }
 }

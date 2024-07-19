@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Loading videos");
         videoViewModel.getAllVideos().observe(this, videos -> {
             Log.d(TAG, "Received " + (videos != null ? videos.size() : 0) + " videos");
+
             if (videos != null && !videos.isEmpty()) {
                 try {
                     videoAdapter = new VideoRecyclerViewAdapter(this, videos, userViewModel, videoViewModel, currentUser);

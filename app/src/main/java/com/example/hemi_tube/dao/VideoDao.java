@@ -3,6 +3,7 @@ package com.example.hemi_tube.dao;
 import androidx.lifecycle.LiveData;
 import androidx.room.*;
 import com.example.hemi_tube.entities.Video;
+
 import java.util.List;
 
 @Dao
@@ -34,10 +35,11 @@ public interface VideoDao {
     @Query("SELECT * FROM videos WHERE id = :videoId")
     LiveData<Video> getVideoByIdLive(String videoId);
 
-    @Query("SELECT * FROM videos WHERE ownerId = :userId")
+    // Use a JSON function to extract the ownerId
+    @Query("SELECT * FROM videos WHERE json_extract(owner, '$.id') = :userId")
     List<Video> getVideosForUser(String userId);
 
-    @Query("SELECT * FROM videos WHERE ownerId = :userId")
+    @Query("SELECT * FROM videos WHERE json_extract(owner, '$.id') = :userId")
     LiveData<List<Video>> getVideosForUserLive(String userId);
 
     @Query("UPDATE videos SET views = views + 1 WHERE id = :videoId")

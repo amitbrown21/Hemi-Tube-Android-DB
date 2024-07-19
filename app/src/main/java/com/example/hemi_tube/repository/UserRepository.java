@@ -48,6 +48,8 @@ public class UserRepository {
                 Response<User> response = apiService.createUser(user).execute();
                 if (response.isSuccessful() && response.body() != null) {
                     User createdUser = response.body();
+                    // Set the id from the server response
+                    createdUser.setId(createdUser.getId() != null ? createdUser.getId() : "");
                     userDao.insert(createdUser);
                     callback.onSuccess(createdUser);
                     Log.d(TAG, "User created successfully: " + createdUser.getId());

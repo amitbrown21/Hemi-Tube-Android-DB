@@ -84,12 +84,9 @@ public class SignUpActivity extends AppCompatActivity {
             public void onSuccess(User result) {
                 runOnUiThread(() -> {
                     Toast.makeText(SignUpActivity.this, "User created successfully", Toast.LENGTH_SHORT).show();
-
-                    Intent mainIntent = new Intent(SignUpActivity.this, MainActivity.class);
-                    mainIntent.putExtra("currentUser", result);
-                    mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                    startActivity(mainIntent);
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("newUser", result);
+                    setResult(RESULT_OK, resultIntent);
                     finish();
                 });
             }
@@ -97,11 +94,8 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             public void onError(Exception e) {
                 runOnUiThread(() -> {
-                    if (e.getMessage().contains("Username already exists")) {
-                        Toast.makeText(SignUpActivity.this, "Username already exists", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(SignUpActivity.this, "Failed to create user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
+                    Log.e(TAG, "Error creating user", e);
+                    Toast.makeText(SignUpActivity.this, "Failed to create user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }
         });

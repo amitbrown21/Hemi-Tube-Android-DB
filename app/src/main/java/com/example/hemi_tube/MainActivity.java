@@ -152,11 +152,16 @@ public class MainActivity extends AppCompatActivity {
         videoViewModel.getAllVideos().observe(this, videos -> {
             Log.d(TAG, "Received " + (videos != null ? videos.size() : 0) + " videos");
             if (videos != null && !videos.isEmpty()) {
-                videoAdapter = new VideoRecyclerViewAdapter(this, videos, userViewModel, videoViewModel, currentUser);
-                videoRecyclerView.setAdapter(videoAdapter);
-                videoRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-                videoRecyclerView.setVisibility(View.VISIBLE);
-                noResultsTextView.setVisibility(View.GONE);
+                try {
+                    videoAdapter = new VideoRecyclerViewAdapter(this, videos, userViewModel, videoViewModel, currentUser);
+                    videoRecyclerView.setAdapter(videoAdapter);
+                    videoRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                    videoRecyclerView.setVisibility(View.VISIBLE);
+                    noResultsTextView.setVisibility(View.GONE);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error setting up video adapter", e);
+                    Toast.makeText(this, "Error loading videos", Toast.LENGTH_SHORT).show();
+                }
             } else {
                 videoRecyclerView.setVisibility(View.GONE);
                 noResultsTextView.setText("No videos available");
@@ -318,16 +323,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        SharedPreferences prefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.clear();
-        editor.apply();
-
+        SharedPreferences authPrefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE);
+        authPrefs.edit().clear().apply();
         currentUser = null;
         isSignedIn = false;
         updateUI();
-        Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show();
-        loadVideos();
     }
 
     private void updateUI() {

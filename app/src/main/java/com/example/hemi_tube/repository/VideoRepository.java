@@ -8,7 +8,6 @@ import androidx.lifecycle.LiveData;
 import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.entities.Video;
-import com.example.hemi_tube.entities.VideoResponse;
 import com.example.hemi_tube.network.ApiService;
 import com.example.hemi_tube.network.RetrofitClient;
 
@@ -172,19 +171,27 @@ public class VideoRepository {
         executor.execute(() -> {
             try {
                 Log.d(TAG, "Refreshing videos from server");
-                Response<VideoResponse> response = apiService.getAllVideos().execute();
+                Response<ApiService.VideoResponse> response = apiService.getAllVideos().execute();
                 if (response.isSuccessful() && response.body() != null) {
-                    VideoResponse videoResponse = response.body();
+                    ApiService.VideoResponse videoResponse = response.body();
+                    Log.d(TAG, "Received VideoResponse: " + videoResponse);
                     List<Video> allVideos = new ArrayList<>();
                     allVideos.addAll(videoResponse.getTopVideos());
                     allVideos.addAll(videoResponse.getOtherVideos());
-                    videoDao.insertAll(allVideos);
-                    Log.d(TAG, "Videos refreshed successfully, count: " + allVideos.size());
+
+                    if (!allVideos.isEmpty()) {
+                        videoDao.insertAll(allVideos);
+                        Log.d(TAG, "Videos refreshed successfully, count: " + allVideos.size());
+                    } else {
+                        Log.w(TAG, "No valid videos received from server");
+                    }
                 } else {
                     Log.e(TAG, "Failed to refresh videos: " + response.message());
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Error refreshing videos", e);
+            } catch (Exception e) {
+                Log.e(TAG, "Unexpected error refreshing videos", e);
             }
         });
     }

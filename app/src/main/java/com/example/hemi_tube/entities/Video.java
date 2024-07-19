@@ -6,15 +6,19 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Entity(tableName = "videos")
-public class Video implements Serializable, Cloneable {
+public class Video implements Serializable {
     @PrimaryKey
     @NonNull
     @ColumnInfo(name = "id")
+    @SerializedName("_id")
     private String id;
     private String url;
     private String title;
@@ -102,7 +106,10 @@ public class Video implements Serializable, Cloneable {
         this.views = views;
     }
 
-    public void setId(String id) {
+    public void setId(@NonNull String id) {
+        if (id == null || id.isEmpty()) {
+            throw new IllegalArgumentException("Video ID cannot be null or empty");
+        }
         this.id = id;
     }
 
@@ -181,6 +188,25 @@ public class Video implements Serializable, Cloneable {
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
+        }
+    }
+    public void setFieldsFromMap(Map<String, Object> videoMap) {
+        this.id = (String) videoMap.get("_id");
+        this.url = (String) videoMap.get("url");
+        this.title = (String) videoMap.get("title");
+        Map<String, Object> owner = (Map<String, Object>) videoMap.get("owner");
+        this.ownerId = (String) owner.get("_id");
+        this.date = (String) videoMap.get("date");
+        this.views = ((Number) videoMap.get("views")).intValue();
+        this.likes = ((Number) videoMap.get("likes")).intValue();
+        this.dislikes = ((Number) videoMap.get("dislikes")).intValue();
+        this.thumbnail = (String) videoMap.get("thumbnail");
+        this.description = (String) videoMap.get("description");
+        this.duration = (String) videoMap.get("duration");
+    }
+    public void setOwnerFromObject(Map<String, Object> owner) {
+        if (owner != null && owner.containsKey("_id")) {
+            this.ownerId = (String) owner.get("_id");
         }
     }
 }

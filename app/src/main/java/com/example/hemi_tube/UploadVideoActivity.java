@@ -116,7 +116,7 @@ public class UploadVideoActivity extends AppCompatActivity {
             Toast.makeText(this, "Please Sign in to upload a video", Toast.LENGTH_SHORT).show();
         } else {
             Video newVideo = new Video(
-                    "0",
+                    null,  // The server will generate the ID
                     videoUri.toString(),
                     videoTitle,
                     currentUser.getId(),
@@ -139,8 +139,11 @@ public class UploadVideoActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Video result) {
                 runOnUiThread(() -> {
+                    Log.d(TAG, "Video uploaded successfully: " + result.getId());
                     Toast.makeText(UploadVideoActivity.this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_OK);
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("uploaded_video_id", result.getId());
+                    setResult(RESULT_OK, resultIntent);
                     finish();
                 });
             }
@@ -148,6 +151,7 @@ public class UploadVideoActivity extends AppCompatActivity {
             @Override
             public void onError(Exception e) {
                 runOnUiThread(() -> {
+                    Log.e(TAG, "Failed to upload video: " + e.getMessage(), e);
                     Toast.makeText(UploadVideoActivity.this, "Failed to upload video: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }

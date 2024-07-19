@@ -39,7 +39,9 @@ public class VideoViewModel extends AndroidViewModel {
     public void deleteVideo(String videoId, RepositoryCallback<Void> callback) {
         videoRepository.deleteVideo(videoId, callback);
     }
-
+    public LiveData<List<Video>> searchVideos(String query) {
+        return videoRepository.searchVideos(query);
+    }
     public void incrementViews(String videoId) {
         videoRepository.incrementViews(videoId);
     }

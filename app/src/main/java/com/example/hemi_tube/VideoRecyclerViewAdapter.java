@@ -1,6 +1,5 @@
 package com.example.hemi_tube;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -15,31 +14,27 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.hemi_tube.dao.UserDao;
-import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
+import com.example.hemi_tube.viewmodel.UserViewModel;
+import com.example.hemi_tube.viewmodel.VideoViewModel;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecyclerViewAdapter.VideoViewHolder> {
 
     private Context context;
     private List<Video> videoList;
-    private UserDao userDao;
-    private VideoDao videoDao;
+    private UserViewModel userViewModel;
+    private VideoViewModel videoViewModel;
     private User currentUser;
-    private ExecutorService executorService;
 
-    public VideoRecyclerViewAdapter(Context context, List<Video> videoList, UserDao userDao, VideoDao videoDao, User currentUser) {
+    public VideoRecyclerViewAdapter(Context context, List<Video> videoList, UserViewModel userViewModel, VideoViewModel videoViewModel, User currentUser) {
         this.context = context;
         this.videoList = videoList;
-        this.userDao = userDao;
-        this.videoDao = videoDao;
+        this.userViewModel = userViewModel;
+        this.videoViewModel = videoViewModel;
         this.currentUser = currentUser;
-        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     @NonNull
@@ -54,31 +49,23 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
         Video currVideo = videoList.get(position);
         holder.title.setText(currVideo.getTitle());
 
-        executorService.execute(() -> {
-            User owner = userDao.getUserById(currVideo.getOwnerId());
+        userViewModel.getUserById(currVideo.getOwnerId()).observe((MainActivity) context, owner -> {
             if (owner != null) {
                 String views = Utils.formatNumber(currVideo.getViews());
                 String metadata = owner.getUsername() + "  " + views + " views  " + currVideo.getDate();
-                ((Activity) context).runOnUiThread(() -> {
-                    holder.metaData.setText(metadata);
-                    setThumbnail(holder.thumbnail, currVideo.getThumbnail());
-                    setProfilePicture(holder.profilePicture, owner.getProfilePicture());
-                });
+                holder.metaData.setText(metadata);
+                setThumbnail(holder.thumbnail, currVideo.getThumbnail());
+                setProfilePicture(holder.profilePicture, owner.getProfilePicture());
             }
         });
 
         holder.thumbnail.setOnClickListener(v -> {
-            executorService.execute(() -> {
-                videoDao.incrementViews(currVideo.getId());
-                Video updatedVideo = videoDao.getVideoById(currVideo.getId());
-                ((Activity) context).runOnUiThread(() -> {
-                    Intent watchVideo = new Intent(context, WatchScreenActivity.class);
-                    watchVideo.putExtra("videoId", updatedVideo.getId());
-                    watchVideo.putExtra("currentUserId", currentUser != null ? currentUser.getId() : -1);
-                    watchVideo.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    context.startActivity(watchVideo);
-                });
-            });
+            videoViewModel.incrementViews(currVideo.getId());
+            Intent watchVideo = new Intent(context, WatchScreenActivity.class);
+            watchVideo.putExtra("videoId", currVideo.getId());
+            watchVideo.putExtra("currentUserId", currentUser != null ? currentUser.getId() : null);
+            watchVideo.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            context.startActivity(watchVideo);
         });
     }
 
@@ -150,14 +137,6 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
             profilePicture = itemView.findViewById(R.id.profilePicture);
             title = itemView.findViewById(R.id.title);
             metaData = itemView.findViewById(R.id.metaData);
-        }
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        if (executorService != null) {
-            executorService.shutdown();
         }
     }
 }

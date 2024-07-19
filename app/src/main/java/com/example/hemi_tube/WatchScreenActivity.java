@@ -21,20 +21,17 @@ import android.widget.ViewFlipper;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.hemi_tube.database.AppDatabase;
-import com.example.hemi_tube.dao.UserDao;
-import com.example.hemi_tube.dao.VideoDao;
-import com.example.hemi_tube.dao.CommentDao;
 import com.example.hemi_tube.entities.CommentObj;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.example.hemi_tube.repository.RepositoryCallback;
+import com.example.hemi_tube.viewmodel.CommentViewModel;
+import com.example.hemi_tube.viewmodel.UserViewModel;
+import com.example.hemi_tube.viewmodel.VideoViewModel;
 
 public class WatchScreenActivity extends AppCompatActivity {
 
@@ -48,11 +45,9 @@ public class WatchScreenActivity extends AppCompatActivity {
     private boolean isExpanded = false; // For description expansion
     private Uri thumbnailUri;
 
-    private AppDatabase database;
-    private UserDao userDao;
-    private VideoDao videoDao;
-    private CommentDao commentDao;
-    private ExecutorService executorService;
+    private VideoViewModel videoViewModel;
+    private UserViewModel userViewModel;
+    private CommentViewModel commentViewModel;
 
     private VideoRecyclerViewAdapter videoAdapter;
     private CommentRecyclerViewAdapter commentAdapter;
@@ -62,11 +57,9 @@ public class WatchScreenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_watch_screen);
 
-        database = AppDatabase.getInstance(this);
-        userDao = database.userDao();
-        videoDao = database.videoDao();
-        commentDao = database.commentDao();
-        executorService = Executors.newSingleThreadExecutor();
+        videoViewModel = new ViewModelProvider(this).get(VideoViewModel.class);
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        commentViewModel = new ViewModelProvider(this).get(CommentViewModel.class);
 
         handleIntent(getIntent());
         setupFlipper();
@@ -75,17 +68,49 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void handleIntent(Intent intent) {
-        String videoId = String.valueOf(intent.getIntExtra("videoId", -1));
-        String currentUserId = String.valueOf(intent.getIntExtra("currentUserId", -1));
+        String videoId = intent.getStringExtra("videoId");
+        String currentUserId = intent.getStringExtra("currentUserId");
 
-        executorService.execute(() -> {
-            currentVideo = videoDao.getVideoById(videoId);
-            currentUser = currentUserId != "-1" ? userDao.getUserById(currentUserId) : null;
-            owner = userDao.getUserById(currentVideo.getOwnerId());
-            runOnUiThread(this::updateUI);
+        videoViewModel.getVideoById(videoId).observe(this, video -> {
+            if (video != null) {
+                currentVideo = video;
+                updateUI();
+                loadOwner();
+                loadComments();
+            }
         });
+
+        if (currentUserId != null) {
+            userViewModel.getUserById(currentUserId).observe(this, user -> {
+                currentUser = user;
+                updateUI();
+            });
+        }
     }
 
+    private void loadOwner() {
+        if (currentVideo != null) {
+            userViewModel.getUserById(currentVideo.getOwnerId()).observe(this, user -> {
+                owner = user;
+                updateUI();
+            });
+        }
+    }
+
+    private void loadComments() {
+        if (currentVideo != null) {
+            commentViewModel.getCommentsForVideo(currentVideo.getId()).observe(this, comments -> {
+                if (commentAdapter == null) {
+                    RecyclerView commRecyclerView = findViewById(R.id.commentSection);
+                    commentAdapter = new CommentRecyclerViewAdapter(this, comments, userViewModel, commentViewModel, currentVideo, videoViewModel, currentUser);
+                    commRecyclerView.setAdapter(commentAdapter);
+                    commRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                } else {
+                    commentAdapter.updateComments(comments);
+                }
+            });
+        }
+    }
 
     private void setProfilePicture(ImageView imageView, String picturePath) {
         if (picturePath == null) {
@@ -105,23 +130,10 @@ public class WatchScreenActivity extends AppCompatActivity {
 
     private void setupFlipper() {
         RecyclerView vidRecyclerView = findViewById(R.id.video_layout);
-        executorService.execute(() -> {
-            List<Video> videos = videoDao.getAllVideos();
-            runOnUiThread(() -> {
-                videoAdapter = new VideoRecyclerViewAdapter(this, videos, userDao, videoDao, currentUser);
-                vidRecyclerView.setAdapter(videoAdapter);
-                vidRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-            });
-        });
-
-        RecyclerView commRecyclerView = findViewById(R.id.commentSection);
-        executorService.execute(() -> {
-            List<CommentObj> comments = commentDao.getCommentsForVideo(currentVideo.getId());
-            runOnUiThread(() -> {
-                commentAdapter = new CommentRecyclerViewAdapter(this, comments, userDao, commentDao, currentVideo, videoDao, currentUser);
-                commRecyclerView.setAdapter(commentAdapter);
-                commRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-            });
+        videoViewModel.getAllVideos().observe(this, videos -> {
+            videoAdapter = new VideoRecyclerViewAdapter(this, videos, userViewModel, videoViewModel, currentUser);
+            vidRecyclerView.setAdapter(videoAdapter);
+            vidRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         });
 
         setupFlipperAnimation();
@@ -172,25 +184,15 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void onLike() {
-        executorService.execute(() -> {
-            videoDao.incrementLikes(currentVideo.getId());
-            currentVideo = videoDao.getVideoById(currentVideo.getId());
-            runOnUiThread(() -> {
-                TextView tvLikesNumber = findViewById(R.id.likes_number);
-                tvLikesNumber.setText(Utils.likeBalance(currentVideo));
-            });
-        });
+        if (currentVideo != null) {
+            videoViewModel.incrementLikes(currentVideo.getId());
+        }
     }
 
     private void onDislike() {
-        executorService.execute(() -> {
-            videoDao.incrementDislikes(currentVideo.getId());
-            currentVideo = videoDao.getVideoById(currentVideo.getId());
-            runOnUiThread(() -> {
-                TextView tvLikesNumber = findViewById(R.id.likes_number);
-                tvLikesNumber.setText(Utils.likeBalance(currentVideo));
-            });
-        });
+        if (currentVideo != null) {
+            videoViewModel.incrementDislikes(currentVideo.getId());
+        }
     }
 
     private void submitComment() {
@@ -202,21 +204,37 @@ public class WatchScreenActivity extends AppCompatActivity {
             return;
         }
 
-        executorService.execute(() -> {
-            CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
-            commentDao.insert(newComment);
-            runOnUiThread(() -> {
-                commentTextField.setText("");
-                updateComments();
-            });
+        if (currentVideo == null) {
+            Toast.makeText(this, "Error: Video not loaded", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
+        commentViewModel.createComment(currentUser.getId(), currentVideo.getId(), newComment, new RepositoryCallback<CommentObj>() {
+            @Override
+            public void onSuccess(CommentObj result) {
+                runOnUiThread(() -> {
+                    commentTextField.setText("");
+                    Toast.makeText(WatchScreenActivity.this, "Comment added successfully", Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(WatchScreenActivity.this, "Failed to add comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
         });
     }
 
     private void onShare() {
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_TEXT, currentVideo.getTitle());
-        startActivity(Intent.createChooser(shareIntent, "Share via"));
+        if (currentVideo != null) {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, currentVideo.getTitle());
+            startActivity(Intent.createChooser(shareIntent, "Share via"));
+        }
     }
 
     private void expandDescription() {
@@ -236,7 +254,7 @@ public class WatchScreenActivity extends AppCompatActivity {
 
     private void setupEditButton() {
         Button editButton = findViewById(R.id.editButton);
-        editButton.setVisibility(currentUser != null && currentUser.getId() == currentVideo.getOwnerId() ? View.VISIBLE : View.GONE);
+        editButton.setVisibility(currentUser != null && currentVideo != null && currentUser.getId().equals(currentVideo.getOwnerId()) ? View.VISIBLE : View.GONE);
         editButton.setOnClickListener(v -> showEditDialog());
     }
 
@@ -268,15 +286,25 @@ public class WatchScreenActivity extends AppCompatActivity {
             if (newTitle.isEmpty() || newDescription.isEmpty() || thumbnailUri == null) {
                 Toast.makeText(this, "Please complete all fields", Toast.LENGTH_SHORT).show();
             } else {
-                executorService.execute(() -> {
-                    currentVideo.setTitle(newTitle);
-                    currentVideo.setDescription(newDescription);
-                    currentVideo.setThumbnail(thumbnailUri.toString());
-                    videoDao.update(currentVideo);
-                    runOnUiThread(() -> {
-                        dialog.dismiss();
-                        updateUI();
-                    });
+                currentVideo.setTitle(newTitle);
+                currentVideo.setDescription(newDescription);
+                currentVideo.setThumbnail(thumbnailUri.toString());
+                videoViewModel.updateVideo(currentVideo, new RepositoryCallback<Video>() {
+                    @Override
+                    public void onSuccess(Video result) {
+                        runOnUiThread(() -> {
+                            dialog.dismiss();
+                            updateUI();
+                            Toast.makeText(WatchScreenActivity.this, "Video updated successfully", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(WatchScreenActivity.this, "Failed to update video: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+                    }
                 });
             }
         });
@@ -299,6 +327,7 @@ public class WatchScreenActivity extends AppCompatActivity {
             }
         }
     }
+
     private void updateUI() {
         if (currentVideo == null || owner == null) {
             Log.e("updateUI", "currentVideo or owner is null");
@@ -322,8 +351,11 @@ public class WatchScreenActivity extends AppCompatActivity {
 
         setProfilePicture(ownerProfilePicture, owner.getProfilePicture());
 
+        ownerProfilePicture.setOnClickListener(v -> openChannelActivity(owner.getId()));
+
+
         setupVideoPlayer();
-        updateComments();
+        setupEditButton();
     }
 
     private void setupVideoPlayer() {
@@ -336,26 +368,15 @@ public class WatchScreenActivity extends AppCompatActivity {
         videoView.setVideoURI(videoUri);
         videoView.start();
     }
-
-    private void updateComments() {
-        executorService.execute(() -> {
-            List<CommentObj> comments = commentDao.getCommentsForVideo(currentVideo.getId());
-            runOnUiThread(() -> {
-                if (commentAdapter == null) {
-                    RecyclerView commRecyclerView = findViewById(R.id.commentSection);
-                    commentAdapter = new CommentRecyclerViewAdapter(this, comments, userDao, commentDao, currentVideo, videoDao, currentUser);
-                    commRecyclerView.setAdapter(commentAdapter);
-                    commRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-                } else {
-                    commentAdapter.updateComments(comments);
-                }
-            });
-        });
+    private void openChannelActivity(String userId) {
+        Intent intent = new Intent(this, ChannelActivity.class);
+        intent.putExtra("userId", userId);
+        startActivity(intent);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        executorService.shutdown();
+        // Any cleanup code if needed
     }
 }

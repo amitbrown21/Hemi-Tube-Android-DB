@@ -9,14 +9,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.hemi_tube.dao.UserDao;
-import com.example.hemi_tube.dao.VideoDao;
-import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
+import com.example.hemi_tube.viewmodel.UserViewModel;
+import com.example.hemi_tube.viewmodel.VideoViewModel;
 
 import java.util.List;
 
@@ -28,9 +28,8 @@ public class ChannelActivity extends AppCompatActivity {
     private RecyclerView videosRecyclerView;
     private VideoRecyclerViewAdapter videoAdapter;
 
-    private AppDatabase database;
-    private UserDao userDao;
-    private VideoDao videoDao;
+    private UserViewModel userViewModel;
+    private VideoViewModel videoViewModel;
 
     private User channelUser;
 
@@ -53,9 +52,8 @@ public class ChannelActivity extends AppCompatActivity {
         subscribersText = findViewById(R.id.subscribersText);
         videosRecyclerView = findViewById(R.id.videosRecyclerView);
 
-        database = AppDatabase.getInstance(this);
-        userDao = database.userDao();
-        videoDao = database.videoDao();
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        videoViewModel = new ViewModelProvider(this).get(VideoViewModel.class);
 
         String userId = getIntent().getStringExtra("userId");
         if (userId == null || userId.isEmpty()) {
@@ -67,21 +65,26 @@ public class ChannelActivity extends AppCompatActivity {
     }
 
     private void loadChannelData(String userId) {
-        new Thread(() -> {
-            channelUser = userDao.getUserById(userId);
-            List<Video> userVideos = videoDao.getVideosForUser(userId);
-
-            runOnUiThread(() -> {
-                if (channelUser != null) {
-                    updateUI(channelUser, userVideos);
-                } else {
-                    finish();
-                }
-            });
-        }).start();
+        userViewModel.getUserById(userId).observe(this, user -> {
+            if (user != null) {
+                channelUser = user;
+                updateUserUI(user);
+                loadUserVideos(userId);
+            } else {
+                finish();
+            }
+        });
     }
 
-    private void updateUI(User user, List<Video> videos) {
+    private void loadUserVideos(String userId) {
+        videoViewModel.getVideosForUser(userId).observe(this, videos -> {
+            if (videos != null) {
+                updateVideosUI(videos);
+            }
+        });
+    }
+
+    private void updateUserUI(User user) {
         usernameText.setText(user.getUsername());
         subscribersText.setText(String.format("%d subscribers", user.getSubscribers()));
 
@@ -94,9 +97,15 @@ public class ChannelActivity extends AppCompatActivity {
         } else {
             profileImage.setImageResource(R.drawable.profile);
         }
+    }
 
-        videoAdapter = new VideoRecyclerViewAdapter(this, videos, userDao, videoDao, null);
-        videosRecyclerView.setAdapter(videoAdapter);
-        videosRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+    private void updateVideosUI(List<Video> videos) {
+        if (videoAdapter == null) {
+            videoAdapter = new VideoRecyclerViewAdapter(this, videos, userViewModel, videoViewModel, null);
+            videosRecyclerView.setAdapter(videoAdapter);
+            videosRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        } else {
+            videoAdapter.updateList(videos);
+        }
     }
 }

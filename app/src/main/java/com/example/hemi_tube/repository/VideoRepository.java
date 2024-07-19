@@ -2,17 +2,22 @@ package com.example.hemi_tube.repository;
 
 import android.content.Context;
 import android.util.Log;
+
 import androidx.lifecycle.LiveData;
+
 import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.entities.VideoResponse;
 import com.example.hemi_tube.network.ApiService;
 import com.example.hemi_tube.network.RetrofitClient;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
 import retrofit2.Response;
 
 public class VideoRepository {
@@ -29,6 +34,7 @@ public class VideoRepository {
     }
 
     public LiveData<List<Video>> getAllVideos() {
+        Log.d(TAG, "Getting all videos from repository");
         refreshVideos();
         return videoDao.getAllVideosLive();
     }
@@ -165,14 +171,15 @@ public class VideoRepository {
     private void refreshVideos() {
         executor.execute(() -> {
             try {
+                Log.d(TAG, "Refreshing videos from server");
                 Response<VideoResponse> response = apiService.getAllVideos().execute();
                 if (response.isSuccessful() && response.body() != null) {
                     VideoResponse videoResponse = response.body();
-                    List<Video> topVideos = videoResponse.getTopVideos();
-                    List<Video> otherVideos = videoResponse.getOtherVideos();
-                    videoDao.insertAll(topVideos);
-                    videoDao.insertAll(otherVideos);
-                    Log.d(TAG, "Videos refreshed successfully");
+                    List<Video> allVideos = new ArrayList<>();
+                    allVideos.addAll(videoResponse.getTopVideos());
+                    allVideos.addAll(videoResponse.getOtherVideos());
+                    videoDao.insertAll(allVideos);
+                    Log.d(TAG, "Videos refreshed successfully, count: " + allVideos.size());
                 } else {
                     Log.e(TAG, "Failed to refresh videos: " + response.message());
                 }
@@ -210,6 +217,26 @@ public class VideoRepository {
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Error refreshing user videos", e);
+            }
+        });
+    }
+    public LiveData<List<Video>> searchVideos(String query) {
+        refreshSearchVideos(query);
+        return videoDao.searchVideosLive("%" + query + "%");
+    }
+
+    private void refreshSearchVideos(String query) {
+        executor.execute(() -> {
+            try {
+                Response<List<Video>> response = apiService.searchVideos(query).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    videoDao.insertAll(response.body());
+                    Log.d(TAG, "Search videos refreshed successfully");
+                } else {
+                    Log.e(TAG, "Failed to refresh search videos: " + response.message());
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "Error refreshing search videos", e);
             }
         });
     }

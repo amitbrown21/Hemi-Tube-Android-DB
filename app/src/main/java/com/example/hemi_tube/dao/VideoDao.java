@@ -58,6 +58,6 @@ public interface VideoDao {
     @Query("SELECT * FROM videos WHERE title LIKE :query")
     List<Video> searchVideos(String query);
 
-    @Query("SELECT * FROM videos WHERE title LIKE :query")
+    @Query("SELECT * FROM videos WHERE title LIKE '%' || :query || '%'")
     LiveData<List<Video>> searchVideosLive(String query);
 }

@@ -1,9 +1,11 @@
 package com.example.hemi_tube.entities;
 
 import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -11,6 +13,7 @@ import java.util.List;
 public class User implements Serializable {
     @PrimaryKey
     @NonNull
+    @ColumnInfo(name = "id")
     private String id;
     private String firstName;
     private String lastName;
@@ -26,7 +29,7 @@ public class User implements Serializable {
     }
 
 
-    public User(String id, String firstName, String lastName, String username, String password, String gender, String profilePicture, int subscribers) {
+    public User(@NonNull String id, String firstName, String lastName, String username, String password, String gender, String profilePicture, int subscribers) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;

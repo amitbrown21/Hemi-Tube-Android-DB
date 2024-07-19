@@ -1,6 +1,7 @@
 package com.example.hemi_tube.entities;
 
 import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
@@ -13,6 +14,7 @@ import java.util.List;
 public class Video implements Serializable, Cloneable {
     @PrimaryKey
     @NonNull
+    @ColumnInfo(name = "id")
     private String id;
     private String url;
     private String title;
@@ -31,7 +33,7 @@ public class Video implements Serializable, Cloneable {
     public Video() {
     }
 
-    public Video(String id, String url, String title, String ownerId, String date, int views, int likes, int dislikes, String thumbnail, String description, String duration, List<CommentObj> comments) {
+    public Video(@NonNull String id, String url, String title, String ownerId, String date, int views, int likes, int dislikes, String thumbnail, String description, String duration, List<CommentObj> comments) {
         this.id = id;
         this.url = url;
         this.title = title;

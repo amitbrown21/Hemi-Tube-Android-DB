@@ -23,23 +23,20 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.hemi_tube.database.AppDatabase;
-import com.example.hemi_tube.dao.UserDao;
-import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
-import com.example.hemi_tube.repository.VideoRepository;
+import com.example.hemi_tube.viewmodel.UserViewModel;
+import com.example.hemi_tube.viewmodel.VideoViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "ShonLog";
+    private static final String TAG = "MainActivity";
     private static final int SIGN_IN_REQUEST = 1;
     private static final int UPLOAD_VIDEO_REQUEST = 2;
     private static final int SIGN_UP_REQUEST = 3;
@@ -57,24 +54,17 @@ public class MainActivity extends AppCompatActivity {
     private boolean isDarkMode = false;
     private boolean isSignedIn = false;
 
-    private AppDatabase database;
-    private UserDao userDao;
-    private VideoDao videoDao;
-    private ExecutorService executorService;
-
-    private VideoRepository videoRepository;
-
+    private VideoViewModel videoViewModel;
+    private UserViewModel userViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize database
-        database = AppDatabase.getInstance(this);
-        userDao = database.userDao();
-        videoDao = database.videoDao();
-        executorService = Executors.newSingleThreadExecutor();
+        // Initialize ViewModels
+        videoViewModel = new ViewModelProvider(this).get(VideoViewModel.class);
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
 
         // Dark Mode Preferences
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -92,15 +82,35 @@ public class MainActivity extends AppCompatActivity {
         logoImageView = findViewById(R.id.logoImageView);
         noResultsTextView = findViewById(R.id.noResultsTextView);
 
-        // Check for intent extras and load data as needed
-        Intent intent = getIntent();
-        if (intent.hasExtra("currentUser")) {
-            currentUser = (User) intent.getSerializableExtra("currentUser");
-            isSignedIn = true;
+        // Check for logged in user
+        SharedPreferences authPrefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE);
+        String userId = authPrefs.getString("user_id", null);
+
+        // Also check if user_id is passed in the intent
+        if (userId == null) {
+            userId = getIntent().getStringExtra("user_id");
         }
 
-        // Initialize VideoRepository
-        videoRepository = new VideoRepository(getApplicationContext());
+        if (userId != null) {
+            final String finalUserId = userId;
+            userViewModel.getUserById(userId).observe(this, user -> {
+                if (user != null) {
+                    currentUser = user;
+                    isSignedIn = true;
+                    updateUI();
+                } else {
+                    // If user is null, clear SharedPreferences and show error
+                    SharedPreferences.Editor editor = authPrefs.edit();
+                    editor.clear();
+                    editor.apply();
+                    Toast.makeText(this, "Error loading user data. Please login again.", Toast.LENGTH_LONG).show();
+                    // Redirect to login screen
+                    Intent loginIntent = new Intent(MainActivity.this, LogInActivity.class);
+                    startActivity(loginIntent);
+                    finish();
+                }
+            });
+        }
 
         loadVideos();
 
@@ -138,9 +148,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadVideos() {
-        videoRepository.getAllVideos().observe(this, videos -> {
+        Log.d(TAG, "Loading videos");
+        videoViewModel.getAllVideos().observe(this, videos -> {
+            Log.d(TAG, "Received " + (videos != null ? videos.size() : 0) + " videos");
             if (videos != null && !videos.isEmpty()) {
-                videoAdapter = new VideoRecyclerViewAdapter(this, videos, userDao, videoDao, currentUser);
+                videoAdapter = new VideoRecyclerViewAdapter(this, videos, userViewModel, videoViewModel, currentUser);
                 videoRecyclerView.setAdapter(videoAdapter);
                 videoRecyclerView.setLayoutManager(new LinearLayoutManager(this));
                 videoRecyclerView.setVisibility(View.VISIBLE);
@@ -193,41 +205,88 @@ public class MainActivity extends AppCompatActivity {
 
     private void performSearch() {
         String query = searchEditText.getText().toString().trim();
-        executorService.execute(() -> {
-            List<Video> searchResults = videoDao.searchVideos("%" + query + "%");
-            runOnUiThread(() -> {
-                if (searchResults.isEmpty()) {
-                    videoRecyclerView.setVisibility(View.GONE);
-                    noResultsTextView.setText("No videos matched with '" + query + "'");
-                    noResultsTextView.setVisibility(View.VISIBLE);
+        videoViewModel.searchVideos(query).observe(this, searchResults -> {
+            if (searchResults == null || searchResults.isEmpty()) {
+                videoRecyclerView.setVisibility(View.GONE);
+                noResultsTextView.setText("No videos matched with '" + query + "'");
+                noResultsTextView.setVisibility(View.VISIBLE);
+            } else {
+                if (videoAdapter == null) {
+                    videoAdapter = new VideoRecyclerViewAdapter(this, searchResults, userViewModel, videoViewModel, currentUser);
+                    videoRecyclerView.setAdapter(videoAdapter);
                 } else {
                     videoAdapter.updateList(searchResults);
-                    videoRecyclerView.setVisibility(View.VISIBLE);
-                    noResultsTextView.setVisibility(View.GONE);
                 }
-                searchEditText.setVisibility(View.GONE);
-                logoImageView.setVisibility(View.VISIBLE);
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
-            });
+                videoRecyclerView.setVisibility(View.VISIBLE);
+                noResultsTextView.setVisibility(View.GONE);
+            }
+            searchEditText.setVisibility(View.GONE);
+            logoImageView.setVisibility(View.VISIBLE);
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
         });
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "onActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
+
+        if (data != null) {
+            Log.d(TAG, "Intent data: " + data.toString());
+        } else {
+            Log.d(TAG, "Intent data is null");
+        }
+
         if (resultCode == RESULT_OK && data != null) {
-            if (requestCode == SIGN_IN_REQUEST) {
-                currentUser = (User) data.getSerializableExtra("currentUser");
-                isSignedIn = true;
-                videoAdapter.updateCurrentUser(currentUser);
-                loadVideos();
-            } else if (requestCode == UPLOAD_VIDEO_REQUEST) {
-                loadVideos();
-            } else if (requestCode == SIGN_UP_REQUEST) {
-                Intent logInIntent = new Intent(MainActivity.this, LogInActivity.class);
-                startActivityForResult(logInIntent, SIGN_IN_REQUEST);
+            switch (requestCode) {
+                case SIGN_IN_REQUEST:
+                    String userId = data.getStringExtra("user_id");
+                    Log.d(TAG, "Sign in successful, user_id: " + userId);
+                    if (userId != null) {
+                        userViewModel.getUserById(userId).observe(this, user -> {
+                            if (user != null) {
+                                Log.d(TAG, "User data retrieved: " + user.toString());
+                                currentUser = user;
+                                isSignedIn = true;
+                                updateUI();
+                                loadVideos();
+                            } else {
+                                Log.e(TAG, "Failed to retrieve user data for id: " + userId);
+                                Toast.makeText(this, "Failed to retrieve user data", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        Log.e(TAG, "User ID is null after sign in");
+                        Toast.makeText(this, "Sign in failed", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+
+                case UPLOAD_VIDEO_REQUEST:
+                    String uploadedVideoId = data.getStringExtra("uploaded_video_id");
+                    Log.d(TAG, "Video uploaded, id: " + uploadedVideoId);
+                    if (uploadedVideoId != null) {
+                        Toast.makeText(this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
+                        loadVideos();
+                    } else {
+                        Log.e(TAG, "Uploaded video ID is null");
+                        Toast.makeText(this, "Failed to get uploaded video details", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+
+                case SIGN_UP_REQUEST:
+                    Log.d(TAG, "Sign up successful, redirecting to sign in");
+                    Intent logInIntent = new Intent(MainActivity.this, LogInActivity.class);
+                    startActivityForResult(logInIntent, SIGN_IN_REQUEST);
+                    break;
+
+                default:
+                    Log.w(TAG, "Unknown request code: " + requestCode);
+                    break;
             }
+        } else if (resultCode != RESULT_CANCELED) {
+            Log.e(TAG, "Activity result not OK. ResultCode: " + resultCode);
+            Toast.makeText(this, "Operation failed", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -240,8 +299,6 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
 
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("currentUser", currentUser);
-        intent.putExtra("isSignedIn", isSignedIn);
         finish();
         startActivity(intent);
     }
@@ -261,16 +318,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void logout() {
+        SharedPreferences prefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear();
+        editor.apply();
+
         currentUser = null;
         isSignedIn = false;
-        videoAdapter.updateCurrentUser(null);
+        updateUI();
         Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show();
         loadVideos();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executorService.shutdown();
+    private void updateUI() {
+        if (videoAdapter != null) {
+            videoAdapter.updateCurrentUser(currentUser);
+        }
+        // Update any UI elements that depend on the user's signed-in state
     }
 }

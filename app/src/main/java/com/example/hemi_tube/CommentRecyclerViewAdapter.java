@@ -1,7 +1,7 @@
 package com.example.hemi_tube;
 
-import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,39 +13,37 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.hemi_tube.dao.CommentDao;
-import com.example.hemi_tube.dao.UserDao;
-import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.entities.CommentObj;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
+import com.example.hemi_tube.repository.RepositoryCallback;
+import com.example.hemi_tube.viewmodel.CommentViewModel;
+import com.example.hemi_tube.viewmodel.UserViewModel;
+import com.example.hemi_tube.viewmodel.VideoViewModel;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecyclerViewAdapter.CommentViewHolder> {
 
     private Context context;
     private List<CommentObj> commentList;
-    private UserDao userDao;
-    private CommentDao commentDao;
+    private UserViewModel userViewModel;
+    private CommentViewModel commentViewModel;
     private Video currentVideo;
-    private VideoDao videoDao;
+    private VideoViewModel videoViewModel;
     private User currentUser;
-    private ExecutorService executorService;
 
-    public CommentRecyclerViewAdapter(Context context, List<CommentObj> commentList, UserDao userDao, CommentDao commentDao, Video currentVideo, VideoDao videoDao, User currentUser) {
+    public CommentRecyclerViewAdapter(Context context, List<CommentObj> commentList, UserViewModel userViewModel, CommentViewModel commentViewModel, Video currentVideo, VideoViewModel videoViewModel, User currentUser) {
         this.context = context;
         this.commentList = commentList;
-        this.userDao = userDao;
-        this.commentDao = commentDao;
+        this.userViewModel = userViewModel;
+        this.commentViewModel = commentViewModel;
         this.currentVideo = currentVideo;
-        this.videoDao = videoDao;
+        this.videoViewModel = videoViewModel;
         this.currentUser = currentUser;
-        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     @NonNull
@@ -61,12 +59,18 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         holder.username.setText(comment.getUsername());
         holder.body.setText(comment.getBody());
 
-        executorService.execute(() -> {
-            User commenter = userDao.getUserByUsername(comment.getUsername());
+        userViewModel.getUserByUsername(comment.getUsername()).observe((LifecycleOwner) context, commenter -> {
             if (commenter != null) {
-                ((Activity) context).runOnUiThread(() ->
-                        setProfilePicture(holder.profilePic, commenter.getProfilePicture())
-                );
+                setProfilePicture(holder.profilePic, commenter.getProfilePicture());
+
+                // Add click listener to the profile picture
+                holder.profilePic.setOnClickListener(v -> openChannelActivity(commenter.getId()));
+
+                // Add click listener to the username text
+                holder.username.setOnClickListener(v -> openChannelActivity(commenter.getId()));
+
+                // Store the commenter's ID in the holder's tag for later use if needed
+                holder.itemView.setTag(commenter.getId());
             }
         });
 
@@ -77,6 +81,8 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         holder.editComment.setOnClickListener(v -> editComment(comment));
         holder.deleteComment.setOnClickListener(v -> deleteComment(comment));
     }
+
+
 
     @Override
     public int getItemCount() {
@@ -100,10 +106,17 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         builder.setPositiveButton("Save", (dialog, which) -> {
             String updatedText = editText.getText().toString();
             if (!updatedText.isEmpty()) {
-                executorService.execute(() -> {
-                    comment.setBody(updatedText);
-                    commentDao.update(comment);
-                    ((Activity) context).runOnUiThread(this::notifyDataSetChanged);
+                comment.setBody(updatedText);
+                commentViewModel.updateComment(currentUser.getId(), currentVideo.getId(), comment, new RepositoryCallback<CommentObj>() {
+                    @Override
+                    public void onSuccess(CommentObj result) {
+                        notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        Toast.makeText(context, "Failed to update comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 });
             }
         });
@@ -119,10 +132,18 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                 .setTitle("Delete Comment")
                 .setMessage("Are you sure you want to delete this comment?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    executorService.execute(() -> {
-                        commentDao.delete(comment);
-                        List<CommentObj> updatedComments = commentDao.getCommentsForVideo(currentVideo.getId());
-                        ((Activity) context).runOnUiThread(() -> updateComments(updatedComments));
+                    commentViewModel.deleteComment(currentUser.getId(), currentVideo.getId(), comment.getId(), new RepositoryCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void result) {
+                            commentViewModel.getCommentsForVideo(currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
+                                CommentRecyclerViewAdapter.this.updateComments(comments);
+                            });
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Toast.makeText(context, "Failed to delete comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     });
                 })
                 .setNegativeButton("No", null)
@@ -139,11 +160,19 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             return;
         }
 
-        executorService.execute(() -> {
-            CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
-            commentDao.insert(newComment);
-            List<CommentObj> updatedComments = commentDao.getCommentsForVideo(currentVideo.getId());
-            ((Activity) context).runOnUiThread(() -> updateComments(updatedComments));
+        CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
+        commentViewModel.createComment(currentUser.getId(), currentVideo.getId(), newComment, new RepositoryCallback<CommentObj>() {
+            @Override
+            public void onSuccess(CommentObj result) {
+                commentViewModel.getCommentsForVideo(currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
+                    CommentRecyclerViewAdapter.this.updateComments(comments);
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(context, "Failed to add comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -179,12 +208,9 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             deleteComment = itemView.findViewById(R.id.deleteComment);
         }
     }
-
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        if (executorService != null) {
-            executorService.shutdown();
-        }
+    private void openChannelActivity(String userId) {
+        Intent intent = new Intent(context, ChannelActivity.class);
+        intent.putExtra("userId", userId);
+        context.startActivity(intent);
     }
 }

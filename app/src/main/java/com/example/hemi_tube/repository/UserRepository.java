@@ -122,13 +122,19 @@ public class UserRepository {
     private void refreshUser(String userId) {
         executor.execute(() -> {
             try {
+                Log.d(TAG, "UserRepository: Refreshing user data for ID: " + userId);
                 Response<User> response = apiService.getUserById(userId).execute();
                 if (response.isSuccessful() && response.body() != null) {
-                    userDao.insert(response.body());
-                    Log.d(TAG, "User refreshed successfully: " + userId);
+                    User user = response.body();
+                    // Make sure to set the id field
+                    user.setId(user.getId() != null ? user.getId() : userId);
+                    userDao.insert(user);
+                    Log.d(TAG, "UserRepository: User refreshed successfully: " + user.toString());
+                } else {
+                    Log.e(TAG, "UserRepository: Failed to refresh user. Response: " + response.message());
                 }
             } catch (IOException e) {
-                Log.e(TAG, "Error refreshing user", e);
+                Log.e(TAG, "UserRepository: Error refreshing user", e);
             }
         });
     }

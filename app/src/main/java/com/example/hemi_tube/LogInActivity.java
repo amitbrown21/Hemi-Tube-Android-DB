@@ -75,19 +75,19 @@ public class LogInActivity extends AppCompatActivity {
                     SharedPreferences prefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE);
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("jwt_token", result.token);
-                    editor.putString("user_id", result.userId);  // Changed to putString
+                    editor.putString("user_id", result.userId);
                     editor.apply();
 
                     Toast.makeText(LogInActivity.this, "Sign in successful", Toast.LENGTH_SHORT).show();
 
                     // Start MainActivity and clear the activity stack
                     Intent mainIntent = new Intent(LogInActivity.this, MainActivity.class);
+                    mainIntent.putExtra("user_id", result.userId);  // Add this line
                     mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(mainIntent);
                     finish();
                 });
             }
-
             @Override
             public void onError(Exception e) {
                 runOnUiThread(() -> {

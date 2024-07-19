@@ -5,7 +5,6 @@ import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.entities.VideoResponse;
 
-
 import java.util.List;
 
 import retrofit2.Call;
@@ -15,6 +14,7 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
 
@@ -83,6 +83,9 @@ public interface ApiService {
     @GET("videos/all")
     Call<List<Video>> getAllVideosWithTopAndRandom();
 
+    @GET("videos/search")
+    Call<List<Video>> searchVideos(@Query("query") String query);
+
     // Comment endpoints
     @GET("users/{id}/videos/{pid}/comments")
     Call<List<CommentObj>> getCommentsByVideoId(@Path("id") int userId, @Path("pid") int videoId);
@@ -98,7 +101,6 @@ public interface ApiService {
 
     @DELETE("users/{id}/videos/{pid}/comments/{commentId}")
     Call<Void> deleteComment(@Path("id") String userId, @Path("pid") String videoId, @Path("commentId") String commentId);
-
 
     // Additional classes for login
     class LoginRequest {

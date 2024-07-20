@@ -90,7 +90,7 @@ public class WatchScreenActivity extends AppCompatActivity {
 
     private void loadOwner() {
         if (currentVideo != null) {
-            userViewModel.getUserById(currentVideo.getOwner()).observe(this, user -> {
+            userViewModel.getUserById(currentVideo.getOwner().getId()).observe(this, user -> {
                 owner = user;
                 updateUI();
             });

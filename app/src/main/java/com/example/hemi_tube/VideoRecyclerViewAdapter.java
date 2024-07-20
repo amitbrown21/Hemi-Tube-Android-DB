@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hemi_tube.entities.User;
@@ -49,15 +50,19 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
         Video currVideo = videoList.get(position);
         holder.title.setText(currVideo.getTitle());
 
-        userViewModel.getUserById(currVideo.getOwner()).observe((MainActivity) context, owner -> {
-            if (owner != null) {
-                String views = Utils.formatNumber(currVideo.getViews());
-                String metadata = owner.getUsername() + "  " + views + " views  " + currVideo.getDate();
-                holder.metaData.setText(metadata);
-                setThumbnail(holder.thumbnail, currVideo.getThumbnail());
-                setProfilePicture(holder.profilePicture, owner.getProfilePicture());
-            }
-        });
+        if (currVideo.getOwner() != null) {
+            String views = Utils.formatNumber(currVideo.getViews());
+            String metadata = currVideo.getOwner().getUsername() + "  " + views + " views  " + currVideo.getDate();
+            holder.metaData.setText(metadata);
+            setThumbnail(holder.thumbnail, currVideo.getThumbnail());
+
+            // Fetch the full user data for the profile picture
+            userViewModel.getUserById(currVideo.getOwner().getId()).observe((LifecycleOwner) context, owner -> {
+                if (owner != null) {
+                    setProfilePicture(holder.profilePicture, owner.getProfilePicture());
+                }
+            });
+        }
 
         holder.thumbnail.setOnClickListener(v -> {
             videoViewModel.incrementViews(currVideo.getId());

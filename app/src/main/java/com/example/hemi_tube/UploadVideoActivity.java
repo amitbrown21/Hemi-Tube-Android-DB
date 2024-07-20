@@ -42,6 +42,7 @@ public class UploadVideoActivity extends AppCompatActivity {
     private User currentUser;
     private VideoViewModel videoViewModel;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,11 +116,12 @@ public class UploadVideoActivity extends AppCompatActivity {
         } else if (currentUser == null) {
             Toast.makeText(this, "Please Sign in to upload a video", Toast.LENGTH_SHORT).show();
         } else {
+            Video.Owner owner = new Video.Owner(currentUser.getId(), currentUser.getUsername());
             Video newVideo = new Video(
                     null,  // The server will generate the ID
                     videoUri.toString(),
                     videoTitle,
-                    currentUser.getId(),
+                    owner,
                     new Date().toString(),
                     0,
                     0,

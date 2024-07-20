@@ -4,6 +4,17 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.example.hemi_tube.entities.Video;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+
+import java.lang.reflect.Type;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -36,10 +47,28 @@ public class RetrofitClient {
                 })
                 .build();
 
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Video.class, new JsonDeserializer<Video>() {
+                    @Override
+                    public Video deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                        JsonObject jsonObject = json.getAsJsonObject();
+                        Video video = new Gson().fromJson(jsonObject, Video.class);
+
+                        if (jsonObject.has("owner") && jsonObject.get("owner").isJsonObject()) {
+                            JsonObject ownerObject = jsonObject.getAsJsonObject("owner");
+                            Video.Owner owner = new Gson().fromJson(ownerObject, Video.Owner.class);
+                            video.setOwner(owner);
+                        }
+
+                        return video;
+                    }
+                })
+                .create();
+
         retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
         // Log the successful creation of the Retrofit instance

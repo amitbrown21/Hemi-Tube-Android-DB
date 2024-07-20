@@ -1,13 +1,21 @@
 package com.example.hemi_tube.database;
 
 import android.content.Context;
+
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
-import com.example.hemi_tube.dao.*;
-import com.example.hemi_tube.entities.*;
+import androidx.room.TypeConverters;
 
-@Database(entities = {User.class, Video.class, CommentObj.class}, version = 3)
+import com.example.hemi_tube.dao.CommentDao;
+import com.example.hemi_tube.dao.UserDao;
+import com.example.hemi_tube.dao.VideoDao;
+import com.example.hemi_tube.entities.CommentObj;
+import com.example.hemi_tube.entities.User;
+import com.example.hemi_tube.entities.Video;
+
+@Database(entities = {User.class, Video.class, CommentObj.class}, version = 4)
+@TypeConverters({OwnerTypeConverter.class})
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
 

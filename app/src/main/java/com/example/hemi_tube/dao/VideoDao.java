@@ -34,10 +34,10 @@ public interface VideoDao {
     @Query("SELECT * FROM videos WHERE id = :videoId")
     LiveData<Video> getVideoByIdLive(String videoId);
 
-    @Query("SELECT * FROM videos WHERE owner = :userId")
+    @Query("SELECT * FROM videos WHERE owner_owner_id = :userId")
     List<Video> getVideosForUser(String userId);
 
-    @Query("SELECT * FROM videos WHERE owner = :userId")
+    @Query("SELECT * FROM videos WHERE owner_owner_id = :userId")
     LiveData<List<Video>> getVideosForUserLive(String userId);
 
     @Query("UPDATE videos SET views = views + 1 WHERE id = :videoId")

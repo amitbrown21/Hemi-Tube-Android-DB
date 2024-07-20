@@ -45,7 +45,7 @@ public class WatchScreenActivity extends AppCompatActivity {
     private int isLiked = 0; // 0 = nothing, 1 = liked, -1 = disliked
     private boolean isExpanded = false; // For description expansion
     private Uri thumbnailUri;
-
+    private VideoView videoView;
     private VideoViewModel videoViewModel;
     private UserViewModel userViewModel;
     private CommentViewModel commentViewModel;
@@ -381,13 +381,26 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void setupVideoPlayer() {
-        VideoView videoView = findViewById(R.id.videoView);
+        videoView = findViewById(R.id.videoView);
         MediaController mediaController = new MediaController(this);
-        mediaController.setMediaPlayer(videoView);
+        mediaController.setAnchorView(videoView);
         videoView.setMediaController(mediaController);
 
         Uri videoUri = Uri.parse("http://10.0.2.2:3000/" + currentVideo.getUrl().replace("\\", "/"));
         videoView.setVideoURI(videoUri);
+
+        videoView.setOnErrorListener((mp, what, extra) -> {
+            Log.e("WatchScreenActivity", "Error playing video: " + what + ", " + extra);
+            Toast.makeText(this, "Error playing video", Toast.LENGTH_SHORT).show();
+            return true;
+        });
+
+        videoView.setOnPreparedListener(mp -> {
+            mp.setOnVideoSizeChangedListener((mediaPlayer, width, height) -> {
+                mediaController.setAnchorView(videoView);
+            });
+        });
+
         videoView.start();
     }
 
@@ -398,8 +411,11 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Any cleanup code if needed
+    protected void onPause() {
+        super.onPause();
+        if (videoView != null) {
+            videoView.pause();
+        }
     }
+
 }

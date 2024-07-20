@@ -75,16 +75,19 @@ public class WatchScreenActivity extends AppCompatActivity {
         videoViewModel.getVideoById(videoId).observe(this, video -> {
             if (video != null) {
                 currentVideo = video;
-                updateUI();
                 loadOwner();
                 loadComments();
+                updateUI(); // Ensure updateUI is called after loading owner
+            } else {
+                Toast.makeText(this, "Video not found", Toast.LENGTH_SHORT).show();
+                finish(); // Close the activity if the video is not found
             }
         });
 
         if (currentUserId != null) {
             userViewModel.getUserById(currentUserId).observe(this, user -> {
                 currentUser = user;
-                updateUI();
+                updateUI(); // Update UI when currentUser is loaded
             });
         }
     }
@@ -93,7 +96,7 @@ public class WatchScreenActivity extends AppCompatActivity {
         if (currentVideo != null) {
             userViewModel.getUserById(currentVideo.getOwner().getId()).observe(this, user -> {
                 owner = user;
-                updateUI();
+                updateUI(); // Update UI when owner is loaded
             });
         }
     }
@@ -101,34 +104,47 @@ public class WatchScreenActivity extends AppCompatActivity {
     private void loadComments() {
         if (currentVideo != null) {
             commentViewModel.getCommentsForVideo(currentVideo.getId()).observe(this, comments -> {
-                if (commentAdapter == null) {
-                    RecyclerView commRecyclerView = findViewById(R.id.commentSection);
-                    commentAdapter = new CommentRecyclerViewAdapter(this, comments, userViewModel, commentViewModel, currentVideo, videoViewModel, currentUser);
-                    commRecyclerView.setAdapter(commentAdapter);
-                    commRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                if (comments != null) {
+                    if (commentAdapter == null) {
+                        RecyclerView commRecyclerView = findViewById(R.id.commentSection);
+                        commentAdapter = new CommentRecyclerViewAdapter(this, comments, userViewModel, commentViewModel, currentVideo, videoViewModel, currentUser);
+                        commRecyclerView.setAdapter(commentAdapter);
+                        commRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                    } else {
+                        commentAdapter.updateComments(comments);
+                    }
                 } else {
-                    commentAdapter.updateComments(comments);
+                    Toast.makeText(this, "Error loading comments", Toast.LENGTH_SHORT).show();
                 }
             });
         }
     }
 
+    // Add this method to handle profile picture clicks
+    public void onProfilePictureClick(View view) {
+        if (currentVideo != null && currentVideo.getOwner() != null) {
+            openChannelActivity(currentVideo.getOwner().getId());
+        }
+    }
+
+    // Ensure the scale type is set correctly
     private void setProfilePicture(ImageView imageView, String picturePath) {
         Log.d("WatchScreenActivity", "Profile Picture Path: " + picturePath);
         if (picturePath != null && !picturePath.isEmpty()) {
-            // Construct the full URL to the image on the server
             String imageUrl = "http://10.0.2.2:3000/" + picturePath.replace("\\", "/");
             Log.d("WatchScreenActivity", "Profile Picture URL: " + imageUrl);
 
-            // Use an image loading library like Picasso or Glide to load the image
             Glide.with(this)
                     .load(imageUrl)
                     .placeholder(R.drawable.profile)
+                    .centerCrop() // Ensure proper scaling
                     .into(imageView);
         } else {
             Log.d("WatchScreenActivity", "Profile picture path is null or empty");
             imageView.setImageResource(R.drawable.profile);
         }
+
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP); // Ensure proper scaling
     }
 
     private void setThumbnail(ImageView imageView, String thumbnailPath) {
@@ -350,7 +366,7 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
-        if (currentVideo == null || currentVideo.getOwner() == null) {
+        if (currentVideo == null || currentVideo.getOwner() == null || owner == null) {
             Log.e("updateUI", "currentVideo or owner is null");
             return;
         }
@@ -366,12 +382,12 @@ public class WatchScreenActivity extends AppCompatActivity {
 
         tvTitle.setText(currentVideo.getTitle());
         tvOwnerName.setText(currentVideo.getOwner().getUsername());
-        //tvSubscribers.setText(currentVideo.getOwner().getSubscribers());
+        tvSubscribers.setText(owner.getSubscribers() + " subscribers");
         tvVideoData.setText(currentVideo.getViews() + " views • " + currentVideo.getDate());
         tvLikesNumber.setText(Utils.likeBalance(currentVideo));
         tvVideoDescription.setText(currentVideo.getDescription());
 
-        //setProfilePicture(ownerProfilePicture, currentVideo.getOwner().getProfilePicture());
+        setProfilePicture(ownerProfilePicture, owner.getProfilePicture());
         //setThumbnail(thumbnailImageView, currentVideo.getThumbnail());
 
         ownerProfilePicture.setOnClickListener(v -> openChannelActivity(currentVideo.getOwner().getId()));
@@ -417,5 +433,4 @@ public class WatchScreenActivity extends AppCompatActivity {
             videoView.pause();
         }
     }
-
 }

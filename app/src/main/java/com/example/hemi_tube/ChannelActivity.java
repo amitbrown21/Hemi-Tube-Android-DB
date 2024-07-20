@@ -1,7 +1,6 @@
 package com.example.hemi_tube;
 
 import android.graphics.Outline;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewOutlineProvider;
@@ -13,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.viewmodel.UserViewModel;
@@ -48,6 +48,7 @@ public class ChannelActivity extends AppCompatActivity {
             }
         });
         profileImage.setClipToOutline(true);
+
         usernameText = findViewById(R.id.usernameText);
         subscribersText = findViewById(R.id.subscribersText);
         videosRecyclerView = findViewById(R.id.videosRecyclerView);
@@ -89,11 +90,13 @@ public class ChannelActivity extends AppCompatActivity {
         subscribersText.setText(String.format("%d subscribers", user.getSubscribers()));
 
         String profilePicturePath = user.getProfilePicture();
-        if (profilePicturePath != null && profilePicturePath.startsWith("content://")) {
-            profileImage.setImageURI(Uri.parse(profilePicturePath));
-        } else if (profilePicturePath != null && profilePicturePath.contains("/")) {
-            int resourceId = getResources().getIdentifier(profilePicturePath.substring(profilePicturePath.lastIndexOf("/") + 1, profilePicturePath.lastIndexOf(".")), "drawable", getPackageName());
-            profileImage.setImageResource(resourceId != 0 ? resourceId : R.drawable.profile);
+        if (profilePicturePath != null && !profilePicturePath.isEmpty()) {
+            String imageUrl = "http://10.0.2.2:3000/" + profilePicturePath.replace("\\", "/");
+            Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.profile)
+                    .circleCrop()
+                    .into(profileImage);
         } else {
             profileImage.setImageResource(R.drawable.profile);
         }

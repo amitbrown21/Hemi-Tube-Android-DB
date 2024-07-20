@@ -39,11 +39,15 @@ const deleteVideo = async (id) => {
 };
 
 const incrementViews = async (id) => {
+  const video = await Video.findById(id);
+  if (!video) {
+      return null;
+  }
   return await Video.findByIdAndUpdate(
-    id,
-    { $inc: { views: 1 } },
-    { new: true }
-  );
+      id,
+      { $inc: { views: 1 } },
+      { new: true }
+  ).populate('owner', 'username profilePicture');
 };
 
 const incrementLikes = async (id) => {

@@ -115,13 +115,16 @@ const videosController = {
 
   incrementViews: async (req, res) => {
     try {
-      const videoId = req.params.pid;
-      const updatedVideo = await videosServices.incrementViews(videoId);
-      res.json(updatedVideo);
+        const videoId = req.params.pid;
+        const updatedVideo = await videosServices.incrementViews(videoId);
+        if (!updatedVideo) {
+            return res.status(404).json({ message: "Video not found" });
+        }
+        res.json(updatedVideo);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+        res.status(500).json({ message: error.message });
     }
-  },
+},
 
   incrementLikes: async (req, res) => {
     try {

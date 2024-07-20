@@ -10,6 +10,7 @@ import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.network.ApiService;
 import com.example.hemi_tube.network.RetrofitClient;
+import com.example.hemi_tube.repository.RepositoryCallback;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,6 +18,9 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
 import retrofit2.Response;
 
 public class VideoRepository {
@@ -68,25 +72,26 @@ public class VideoRepository {
         });
     }
 
-    public void updateVideo(Video video, final RepositoryCallback<Video> callback) {
+    public void uploadVideo(RequestBody userIdPart, RequestBody titlePart, RequestBody descriptionPart, MultipartBody.Part videoPart, MultipartBody.Part thumbnailPart, final RepositoryCallback<Video> callback) {
         executor.execute(() -> {
             try {
-                Response<Video> response = apiService.updateVideo(video.getId(), video).execute();
+                Response<Video> response = apiService.uploadVideo(userIdPart, titlePart, descriptionPart, videoPart, thumbnailPart).execute();
                 if (response.isSuccessful() && response.body() != null) {
-                    Video updatedVideo = response.body();
-                    videoDao.update(updatedVideo);
-                    callback.onSuccess(updatedVideo);
-                    Log.d(TAG, "Video updated successfully: " + updatedVideo.getId());
+                    Video createdVideo = response.body();
+                    videoDao.insert(createdVideo);
+                    callback.onSuccess(createdVideo);
+                    Log.d(TAG, "Video uploaded successfully: " + createdVideo.getId());
                 } else {
-                    callback.onError(new Exception("Failed to update video"));
-                    Log.e(TAG, "Failed to update video: " + response.message());
+                    callback.onError(new Exception("Failed to upload video"));
+                    Log.e(TAG, "Failed to upload video: " + response.message());
                 }
             } catch (IOException e) {
                 callback.onError(e);
-                Log.e(TAG, "Error updating video", e);
+                Log.e(TAG, "Error uploading video", e);
             }
         });
     }
+
 
     public void deleteVideo(String videoId, final RepositoryCallback<Void> callback) {
         executor.execute(() -> {
@@ -171,13 +176,10 @@ public class VideoRepository {
         executor.execute(() -> {
             try {
                 Log.d(TAG, "Refreshing videos from server");
-                Response<ApiService.VideoResponse> response = apiService.getAllVideos().execute();
+                Response<List<Video>> response = apiService.getAllVideos().execute();
                 if (response.isSuccessful() && response.body() != null) {
-                    ApiService.VideoResponse videoResponse = response.body();
-                    Log.d(TAG, "Received VideoResponse: " + videoResponse);
-                    List<Video> allVideos = new ArrayList<>();
-                    allVideos.addAll(videoResponse.getTopVideos());
-                    allVideos.addAll(videoResponse.getOtherVideos());
+                    List<Video> allVideos = response.body();
+                    Log.d(TAG, "Received videos: " + allVideos);
 
                     if (!allVideos.isEmpty()) {
                         videoDao.insertAll(allVideos);
@@ -227,6 +229,7 @@ public class VideoRepository {
             }
         });
     }
+
     public LiveData<List<Video>> searchVideos(String query) {
         refreshSearchVideos(query);
         return videoDao.searchVideosLive("%" + query + "%");
@@ -246,5 +249,9 @@ public class VideoRepository {
                 Log.e(TAG, "Error refreshing search videos", e);
             }
         });
+    }
+
+    public Call<Video> uploadVideo(RequestBody userIdPart, RequestBody titlePart, RequestBody descriptionPart, MultipartBody.Part videoPart, MultipartBody.Part thumbnailPart) {
+        return apiService.uploadVideo(userIdPart, titlePart, descriptionPart, videoPart, thumbnailPart);
     }
 }

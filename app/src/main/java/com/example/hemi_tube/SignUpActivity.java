@@ -1,6 +1,7 @@
 package com.example.hemi_tube;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +19,13 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.repository.RepositoryCallback;
 import com.example.hemi_tube.viewmodel.UserViewModel;
+
+import java.io.File;
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 
 public class SignUpActivity extends AppCompatActivity {
     private static final int PICK_PROFILE_IMAGE_REQUEST = 1;
@@ -72,14 +80,22 @@ public class SignUpActivity extends AppCompatActivity {
                 Toast.makeText(SignUpActivity.this, "Password must be 8-20 characters long and contain only English letters and numbers", Toast.LENGTH_SHORT).show();
             } else {
                 String profilePictureUri = (profileImageUri != null) ? profileImageUri.toString() : "drawable/placeholder";
-                User newUser = new User("0", firstName, lastName, username, password, gender, profilePictureUri, 0);
-                createUser(newUser);
+                User newUser = new User("0", firstName, lastName, username, password, gender, profilePictureUri, "0");
+                String filePath = FileUtil.getPathFromUri(this, profileImageUri);
+                if (filePath != null) {
+                    File profileImageFile = new File(filePath);
+                    RequestBody profileImageRequestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(profileImageUri)), profileImageFile);
+                    MultipartBody.Part profileImageBody = MultipartBody.Part.createFormData("profileImage", profileImageFile.getName(), profileImageRequestFile);
+                    createUser(newUser, profileImageBody);
+                } else {
+                    Toast.makeText(SignUpActivity.this, "Failed to get image path", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
 
-    private void createUser(User user) {
-        userViewModel.createUser(user, new RepositoryCallback<User>() {
+    private void createUser(User user, MultipartBody.Part profileImageBody) {
+        userViewModel.createUser(user, profileImageBody, new RepositoryCallback<User>() {
             @Override
             public void onSuccess(User result) {
                 runOnUiThread(() -> {
@@ -117,10 +133,15 @@ public class SignUpActivity extends AppCompatActivity {
                 try {
                     final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                     getContentResolver().takePersistableUriPermission(profileImageUri, takeFlags);
-                    selectImageButton.setImageURI(profileImageUri);
+
+                    Bitmap resizedBitmap = ImageUtil.getResizedBitmap(this, profileImageUri, 100, 100);
+                    selectImageButton.setImageBitmap(resizedBitmap);
                 } catch (SecurityException e) {
                     Log.e(TAG, "Failed to take persistable URI permission", e);
                     Toast.makeText(this, "Failed to access the selected image", Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    Log.e(TAG, "Failed to resize image", e);
+                    Toast.makeText(this, "Failed to resize the selected image", Toast.LENGTH_SHORT).show();
                 }
             }
         }

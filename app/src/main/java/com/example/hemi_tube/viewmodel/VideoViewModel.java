@@ -8,6 +8,10 @@ import com.example.hemi_tube.repository.VideoRepository;
 import com.example.hemi_tube.repository.RepositoryCallback;
 import java.util.List;
 
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+
 public class VideoViewModel extends AndroidViewModel {
     private VideoRepository videoRepository;
 
@@ -33,15 +37,17 @@ public class VideoViewModel extends AndroidViewModel {
     }
 
     public void updateVideo(Video video, RepositoryCallback<Video> callback) {
-        videoRepository.updateVideo(video, callback);
+        //videoRepository.updateVideo(video, callback);
     }
 
     public void deleteVideo(String videoId, RepositoryCallback<Void> callback) {
         videoRepository.deleteVideo(videoId, callback);
     }
+
     public LiveData<List<Video>> searchVideos(String query) {
         return videoRepository.searchVideos(query);
     }
+
     public void incrementViews(String videoId) {
         videoRepository.incrementViews(videoId);
     }
@@ -60,5 +66,9 @@ public class VideoViewModel extends AndroidViewModel {
 
     public void decrementDislikes(String videoId) {
         videoRepository.decrementDislikes(videoId);
+    }
+
+    public Call<Video> uploadVideo(RequestBody userIdPart, RequestBody titlePart, RequestBody descriptionPart, MultipartBody.Part videoBody, MultipartBody.Part thumbnailBody) {
+        return videoRepository.uploadVideo(userIdPart, titlePart, descriptionPart, videoBody, thumbnailBody);
     }
 }

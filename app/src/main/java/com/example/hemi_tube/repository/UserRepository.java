@@ -12,7 +12,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Response;
+import retrofit2.http.Part;
 
 public class UserRepository {
     private static final String TAG = "UserRepository";
@@ -42,10 +46,29 @@ public class UserRepository {
         return userDao.getAllUsersLive();
     }
 
-    public void createUser(User user, final RepositoryCallback<User> callback) {
+    public void createUser(User user, MultipartBody.Part profileImage, final RepositoryCallback<User> callback) {
         executor.execute(() -> {
             try {
-                Response<User> response = apiService.createUser(user).execute();
+                // Prepare other parts
+                RequestBody firstNamePart = RequestBody.create(MultipartBody.FORM, user.getFirstName());
+                RequestBody lastNamePart = RequestBody.create(MultipartBody.FORM, user.getLastName());
+                RequestBody usernamePart = RequestBody.create(MultipartBody.FORM, user.getUsername());
+                RequestBody passwordPart = RequestBody.create(MultipartBody.FORM, user.getPassword());
+                RequestBody genderPart = RequestBody.create(MultipartBody.FORM, user.getGender());
+                RequestBody subscribersPart = RequestBody.create(MultipartBody.FORM, user.getSubscribers());
+
+                // Make the request
+                Response<User> response = apiService.createUser(
+                        firstNamePart, lastNamePart, usernamePart, passwordPart, genderPart, profileImage, subscribersPart
+                ).execute();
+
+                // Log the response details
+                Log.d(TAG, "Response code: " + response.code());
+                Log.d(TAG, "Response message: " + response.message());
+                if (response.errorBody() != null) {
+                    Log.e(TAG, "Error body: " + response.errorBody().string());
+                }
+
                 if (response.isSuccessful() && response.body() != null) {
                     User createdUser = response.body();
                     // Set the id from the server response

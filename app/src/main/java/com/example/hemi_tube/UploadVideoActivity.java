@@ -3,6 +3,7 @@ package com.example.hemi_tube;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,11 +19,17 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
-import com.example.hemi_tube.repository.RepositoryCallback;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
+import com.google.gson.Gson;
 
-import java.util.ArrayList;
-import java.util.Date;
+import java.io.File;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class UploadVideoActivity extends AppCompatActivity {
 
@@ -115,46 +122,51 @@ public class UploadVideoActivity extends AppCompatActivity {
         } else if (currentUser == null) {
             Toast.makeText(this, "Please Sign in to upload a video", Toast.LENGTH_SHORT).show();
         } else {
-            Video newVideo = new Video(
-                    null,  // The server will generate the ID
-                    videoUri.toString(),
-                    videoTitle,
-                    currentUser.getId(),
-                    new Date().toString(),
-                    0,
-                    0,
-                    0,
-                    thumbnailUri.toString(),
-                    videoDescription,
-                    "00:00",
-                    new ArrayList<>()
-            );
+            try {
+                // Prepare the file parts
+                File videoFile = new File(FileUtil.getPathFromUri(this, videoUri));
+                RequestBody videoRequestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(videoUri)), videoFile);
+                MultipartBody.Part videoBody = MultipartBody.Part.createFormData("video", videoFile.getName(), videoRequestFile);
 
-            createVideo(newVideo);
+                File thumbnailFile = new File(FileUtil.getPathFromUri(this, thumbnailUri));
+                RequestBody thumbnailRequestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(thumbnailUri)), thumbnailFile);
+                MultipartBody.Part thumbnailBody = MultipartBody.Part.createFormData("thumbnail", thumbnailFile.getName(), thumbnailRequestFile);
+
+                // Prepare other parts
+                RequestBody titlePart = RequestBody.create(MultipartBody.FORM, videoTitle);
+                RequestBody descriptionPart = RequestBody.create(MultipartBody.FORM, videoDescription);
+                RequestBody userIdPart = RequestBody.create(MultipartBody.FORM, currentUser.getId());
+
+                videoViewModel.uploadVideo(userIdPart, titlePart, descriptionPart, videoBody, thumbnailBody).enqueue(new Callback<Video>() {
+                    @Override
+                    public void onResponse(Call<Video> call, Response<Video> response) {
+                        if (response.isSuccessful()) {
+                            Video result = response.body();
+                            Log.d(TAG, "Video uploaded successfully: " + result.getId());
+                            Toast.makeText(UploadVideoActivity.this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
+                            Intent resultIntent = new Intent();
+                            resultIntent.putExtra("uploaded_video_id", result.getId());
+                            setResult(RESULT_OK, resultIntent);
+                            finish();
+                        } else {
+                            Log.e(TAG, "Failed to upload video: " + response.message());
+                            Toast.makeText(UploadVideoActivity.this, "Failed to upload video: " + response.message(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Video> call, Throwable t) {
+                        Log.e(TAG, "Failed to upload video: " + t.getMessage(), t);
+                        Toast.makeText(UploadVideoActivity.this, "Failed to upload video: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to get file path", e);
+                Toast.makeText(this, "Failed to get file path", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
-    private void createVideo(Video video) {
-        videoViewModel.createVideo(currentUser.getId(), video, new RepositoryCallback<Video>() {
-            @Override
-            public void onSuccess(Video result) {
-                runOnUiThread(() -> {
-                    Log.d(TAG, "Video uploaded successfully: " + result.getId());
-                    Toast.makeText(UploadVideoActivity.this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("uploaded_video_id", result.getId());
-                    setResult(RESULT_OK, resultIntent);
-                    finish();
-                });
-            }
-
-            @Override
-            public void onError(Exception e) {
-                runOnUiThread(() -> {
-                    Log.e(TAG, "Failed to upload video: " + e.getMessage(), e);
-                    Toast.makeText(UploadVideoActivity.this, "Failed to upload video: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
-            }
-        });
-    }
 }
+
+

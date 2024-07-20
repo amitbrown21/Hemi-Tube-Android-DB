@@ -25,6 +25,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.hemi_tube.entities.CommentObj;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
@@ -90,10 +91,10 @@ public class WatchScreenActivity extends AppCompatActivity {
 
     private void loadOwner() {
         if (currentVideo != null) {
-            //userViewModel.getUserById(currentVideo.getOwnerId()).observe(this, user -> {
-                //owner = user;
-                //updateUI();
-            //});
+            userViewModel.getUserById(currentVideo.getOwner().getId()).observe(this, user -> {
+                owner = user;
+                updateUI();
+            });
         }
     }
 
@@ -113,18 +114,38 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void setProfilePicture(ImageView imageView, String picturePath) {
-        if (picturePath == null) {
-            imageView.setImageResource(R.drawable.profile);
-        } else if (picturePath.startsWith("content://")) {
-            try {
-                imageView.setImageURI(Uri.parse(picturePath));
-            } catch (SecurityException e) {
-                Log.e("WatchScreenActivity", "No access to content URI for profile picture", e);
-                imageView.setImageResource(R.drawable.profile);
-            }
+        Log.d("WatchScreenActivity", "Profile Picture Path: " + picturePath);
+        if (picturePath != null && !picturePath.isEmpty()) {
+            // Construct the full URL to the image on the server
+            String imageUrl = "http://10.0.2.2:3000/" + picturePath.replace("\\", "/");
+            Log.d("WatchScreenActivity", "Profile Picture URL: " + imageUrl);
+
+            // Use an image loading library like Picasso or Glide to load the image
+            Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.profile)
+                    .into(imageView);
         } else {
-            int resourceId = getResources().getIdentifier(picturePath, "drawable", getPackageName());
-            imageView.setImageResource(resourceId != 0 ? resourceId : R.drawable.profile);
+            Log.d("WatchScreenActivity", "Profile picture path is null or empty");
+            imageView.setImageResource(R.drawable.profile);
+        }
+    }
+
+    private void setThumbnail(ImageView imageView, String thumbnailPath) {
+        Log.d("WatchScreenActivity", "Thumbnail Path: " + thumbnailPath);
+        if (thumbnailPath != null && !thumbnailPath.isEmpty()) {
+            // Construct the full URL to the image on the server
+            String imageUrl = "http://10.0.2.2:3000/" + thumbnailPath.replace("\\", "/");
+            Log.d("WatchScreenActivity", "Thumbnail URL: " + imageUrl);
+
+            // Use an image loading library like Picasso or Glide to load the image
+            Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.thumbnail_placeholder)
+                    .into(imageView);
+        } else {
+            Log.d("WatchScreenActivity", "Thumbnail path is null or empty");
+            imageView.setImageResource(R.drawable.thumbnail_placeholder);
         }
     }
 
@@ -254,7 +275,7 @@ public class WatchScreenActivity extends AppCompatActivity {
 
     private void setupEditButton() {
         Button editButton = findViewById(R.id.editButton);
-        //editButton.setVisibility(currentUser != null && currentVideo != null && currentUser.getId().equals(currentVideo.getOwnerId()) ? View.VISIBLE : View.GONE);
+        editButton.setVisibility(currentUser != null && currentVideo != null && currentUser.getId().equals(currentVideo.getOwner().getId()) ? View.VISIBLE : View.GONE);
         editButton.setOnClickListener(v -> showEditDialog());
     }
 
@@ -329,7 +350,7 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
-        if (currentVideo == null || owner == null) {
+        if (currentVideo == null || currentVideo.getOwner() == null) {
             Log.e("updateUI", "currentVideo or owner is null");
             return;
         }
@@ -341,18 +362,19 @@ public class WatchScreenActivity extends AppCompatActivity {
         TextView tvLikesNumber = findViewById(R.id.likes_number);
         TextView tvVideoDescription = findViewById(R.id.videoDescription);
         ImageView ownerProfilePicture = findViewById(R.id.owner_profile_picture);
+        //ImageView thumbnailImageView = findViewById(R.id.videoThumbnail);
 
         tvTitle.setText(currentVideo.getTitle());
-        tvOwnerName.setText(owner.getUsername());
-        tvSubscribers.setText(owner.getSubscribers());
+        tvOwnerName.setText(currentVideo.getOwner().getUsername());
+        //tvSubscribers.setText(currentVideo.getOwner().getSubscribers());
         tvVideoData.setText(currentVideo.getViews() + " views • " + currentVideo.getDate());
         tvLikesNumber.setText(Utils.likeBalance(currentVideo));
         tvVideoDescription.setText(currentVideo.getDescription());
 
-        setProfilePicture(ownerProfilePicture, owner.getProfilePicture());
+        //setProfilePicture(ownerProfilePicture, currentVideo.getOwner().getProfilePicture());
+        //setThumbnail(thumbnailImageView, currentVideo.getThumbnail());
 
-        ownerProfilePicture.setOnClickListener(v -> openChannelActivity(owner.getId()));
-
+        ownerProfilePicture.setOnClickListener(v -> openChannelActivity(currentVideo.getOwner().getId()));
 
         setupVideoPlayer();
         setupEditButton();
@@ -364,10 +386,11 @@ public class WatchScreenActivity extends AppCompatActivity {
         mediaController.setMediaPlayer(videoView);
         videoView.setMediaController(mediaController);
 
-        Uri videoUri = Uri.parse(currentVideo.getUrl());
+        Uri videoUri = Uri.parse("http://10.0.2.2:3000/" + currentVideo.getUrl().replace("\\", "/"));
         videoView.setVideoURI(videoUri);
         videoView.start();
     }
+
     private void openChannelActivity(String userId) {
         Intent intent = new Intent(this, ChannelActivity.class);
         intent.putExtra("userId", userId);

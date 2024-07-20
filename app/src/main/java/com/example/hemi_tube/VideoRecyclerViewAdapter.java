@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.viewmodel.UserViewModel;
@@ -94,24 +95,20 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
     private void setThumbnail(ImageButton imageButton, String thumbnailUri) {
         Log.d("VideoRecyclerViewAdapter", "Thumbnail URI: " + thumbnailUri);
         if (thumbnailUri != null && !thumbnailUri.isEmpty()) {
-            // Replace backslashes with forward slashes
-            String correctedThumbnailUri = thumbnailUri.replace("\\", "/");
-            Log.d("VideoRecyclerViewAdapter", "Corrected Thumbnail URI: " + correctedThumbnailUri);
+            // Construct the full URL to the image on the server
+            String imageUrl = "http://10.0.2.2:3000/" + thumbnailUri.replace("\\", "/");
+            Log.d("VideoRecyclerViewAdapter", "Thumbnail URL: " + imageUrl);
 
-            File imgFile = new File(correctedThumbnailUri);
-            if (imgFile.exists()) {
-                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                imageButton.setImageBitmap(myBitmap);
-            } else {
-                Log.d("VideoRecyclerViewAdapter", "Thumbnail file does not exist: " + imgFile.getAbsolutePath());
-                imageButton.setImageResource(R.drawable.thumbnail_placeholder);
-            }
+            // Use an image loading library like Picasso or Glide to load the image
+            Glide.with(context)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.thumbnail_placeholder)
+                    .into(imageButton);
         } else {
             Log.d("VideoRecyclerViewAdapter", "Thumbnail URI is null or empty");
             imageButton.setImageResource(R.drawable.thumbnail_placeholder);
         }
     }
-
     private void setProfilePicture(ImageView imageView, String picturePath) {
         Log.d("VideoRecyclerViewAdapter", "Profile Picture Path: " + picturePath);
         if (picturePath != null && !picturePath.isEmpty()) {

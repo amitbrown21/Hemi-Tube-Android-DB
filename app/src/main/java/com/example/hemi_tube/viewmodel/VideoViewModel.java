@@ -37,7 +37,7 @@ public class VideoViewModel extends AndroidViewModel {
     }
 
     public void updateVideo(Video video, RepositoryCallback<Video> callback) {
-        videoRepository.updateVideo(video, callback);
+        //videoRepository.updateVideo(video, callback);
     }
 
     public void deleteVideo(String videoId, RepositoryCallback<Void> callback) {

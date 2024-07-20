@@ -135,13 +135,9 @@ public class UploadVideoActivity extends AppCompatActivity {
                 // Prepare other parts
                 RequestBody titlePart = RequestBody.create(MultipartBody.FORM, videoTitle);
                 RequestBody descriptionPart = RequestBody.create(MultipartBody.FORM, videoDescription);
+                RequestBody userIdPart = RequestBody.create(MultipartBody.FORM, currentUser.getId());
 
-                // Create the owner object
-                Video.Owner owner = new Video.Owner(currentUser.getId(), currentUser.getUsername());
-                String ownerJson = new Gson().toJson(owner);
-                RequestBody ownerPart = RequestBody.create(MultipartBody.FORM, ownerJson);
-
-                videoViewModel.uploadVideo(ownerPart, titlePart, descriptionPart, videoBody, thumbnailBody).enqueue(new Callback<Video>() {
+                videoViewModel.uploadVideo(userIdPart, titlePart, descriptionPart, videoBody, thumbnailBody).enqueue(new Callback<Video>() {
                     @Override
                     public void onResponse(Call<Video> call, Response<Video> response) {
                         if (response.isSuccessful()) {
@@ -172,3 +168,5 @@ public class UploadVideoActivity extends AppCompatActivity {
     }
 
 }
+
+

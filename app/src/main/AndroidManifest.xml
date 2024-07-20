@@ -46,6 +46,10 @@
             android:name=".UploadVideoActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ChannelActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

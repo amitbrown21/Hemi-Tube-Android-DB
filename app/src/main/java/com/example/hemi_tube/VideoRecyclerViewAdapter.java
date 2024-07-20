@@ -16,10 +16,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
+import com.example.hemi_tube.network.ApiService;
+import com.example.hemi_tube.network.RetrofitClient;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
 
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecyclerViewAdapter.VideoViewHolder> {
 
@@ -94,7 +100,7 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
             });
 
             thumbnail.setOnClickListener(v -> {
-                //videoViewModel.incrementViews(video.getId());
+                incrementViews(video.getId());
                 Intent watchVideo = new Intent(context, WatchScreenActivity.class);
                 watchVideo.putExtra("videoId", video.getId());
                 watchVideo.putExtra("currentUserId", currentUser != null ? currentUser.getId() : null);
@@ -113,6 +119,25 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
             } else {
                 imageView.setImageResource(placeholderResId);
             }
+        }
+
+        private void incrementViews(String videoId) {
+            ApiService apiService = RetrofitClient.getInstance(context).getApi();
+            apiService.incrementViews(videoId).enqueue(new Callback<Video>() {
+                @Override
+                public void onResponse(Call<Video> call, Response<Video> response) {
+                    if (response.isSuccessful()) {
+                        // Handle the response if needed
+                    } else {
+                        // Handle the error if needed
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Video> call, Throwable t) {
+                    // Handle the failure if needed
+                }
+            });
         }
     }
 }

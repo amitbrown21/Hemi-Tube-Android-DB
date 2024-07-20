@@ -42,7 +42,8 @@ public class WatchScreenActivity extends AppCompatActivity {
     private Video currentVideo = null;
     private User currentUser = null;
     private User owner = null;
-    private int isLiked = 0; // 0 = nothing, 1 = liked, -1 = disliked
+    private boolean isLiked = false; // Track if the video is liked by the user
+    private boolean isDisliked = false; // Track if the video is disliked by the user
     private boolean isExpanded = false; // For description expansion
     private Uri thumbnailUri;
     private VideoView videoView;
@@ -221,14 +222,44 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void onLike() {
+        if (currentUser == null) {
+            Toast.makeText(this, "Please sign in to like", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (currentVideo != null) {
-            videoViewModel.incrementLikes(currentVideo.getId());
+            if (isLiked) {
+                videoViewModel.decrementLikes(currentVideo.getId());
+                isLiked = false;
+            } else {
+                if (isDisliked) {
+                    videoViewModel.decrementDislikes(currentVideo.getId());
+                    isDisliked = false;
+                }
+                videoViewModel.incrementLikes(currentVideo.getId());
+                isLiked = true;
+            }
         }
     }
 
     private void onDislike() {
+        if (currentUser == null) {
+            Toast.makeText(this, "Please sign in to dislike", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (currentVideo != null) {
-            videoViewModel.incrementDislikes(currentVideo.getId());
+            if (isDisliked) {
+                videoViewModel.decrementDislikes(currentVideo.getId());
+                isDisliked = false;
+            } else {
+                if (isLiked) {
+                    videoViewModel.decrementLikes(currentVideo.getId());
+                    isLiked = false;
+                }
+                videoViewModel.incrementDislikes(currentVideo.getId());
+                isDisliked = true;
+            }
         }
     }
 

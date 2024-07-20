@@ -24,17 +24,17 @@ const videosController = {
 
   createVideo: async (req, res) => {
     try {
-      const userId = req.params.id;
-      const { title, description, url, thumbnail, duration } = req.body;
-
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
+      if (!req.file) {
+        return res.status(400).json({ message: "No video file uploaded" });
       }
+
+      const userId = req.user.userId; // Assuming you're using authentication middleware
+      const { title, description, thumbnail, duration } = req.body;
 
       const newVideo = await videosServices.createVideo(userId, {
         title,
         description,
-        url,
+        filePath: `/uploads/videos/${req.file.filename}`,
         thumbnail,
         duration,
         owner: userId,

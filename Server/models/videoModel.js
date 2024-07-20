@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
-const Comment = require("./commentModel"); // Ensure Comment model is imported
+const Comment = require("./commentModel");
 
 const videoSchema = new mongoose.Schema({
-  url: {
+  filePath: {
     type: String,
     required: true,
   },
@@ -18,7 +18,7 @@ const videoSchema = new mongoose.Schema({
   date: {
     type: Date,
     required: true,
-    default: Date.now, // Set the default to the current date
+    default: Date.now,
   },
   views: {
     type: Number,

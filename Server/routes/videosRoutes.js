@@ -11,4 +11,6 @@ router.post("/:pid/decrementDislikes", videosController.decrementDislikes);
 router.get("/all", videosController.getAllVideos);
 router.get("/:pid", videosController.getVideoById);
 
+router.post("/", authMiddleware, upload.single('video'), videosController.createVideo);
+
 module.exports = router;

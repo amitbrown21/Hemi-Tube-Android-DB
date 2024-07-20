@@ -24,7 +24,7 @@ public class Video implements Serializable {
     private String title;
 
     @SerializedName("owner")
-    private String owner; // Change to String
+    private Owner owner; // Change to Owner class
 
     private int views;
     private int likes;
@@ -40,7 +40,7 @@ public class Video implements Serializable {
     public Video() {
     }
 
-    public Video(@NonNull String id, String url, String title, String owner, int views, int likes, int dislikes, String thumbnail, String description, String duration, String date, List<CommentObj> comments) {
+    public Video(@NonNull String id, String url, String title, Owner owner, int views, int likes, int dislikes, String thumbnail, String description, String duration, String date, List<CommentObj> comments) {
         this.id = id;
         this.url = url;
         this.title = title;
@@ -57,6 +57,7 @@ public class Video implements Serializable {
 
     // Getters and Setters
 
+    @NonNull
     public String getId() {
         return id;
     }
@@ -81,11 +82,11 @@ public class Video implements Serializable {
         this.title = title;
     }
 
-    public String getOwner() {
+    public Owner getOwner() {
         return owner;
     }
 
-    public void setOwner(String owner) {
+    public void setOwner(Owner owner) {
         this.owner = owner;
     }
 
@@ -159,7 +160,7 @@ public class Video implements Serializable {
                 "id='" + id + '\'' +
                 ", url='" + url + '\'' +
                 ", title='" + title + '\'' +
-                ", owner='" + owner + '\'' +
+                ", owner=" + owner +
                 ", views=" + views +
                 ", likes=" + likes +
                 ", dislikes=" + dislikes +
@@ -169,5 +170,47 @@ public class Video implements Serializable {
                 ", date='" + date + '\'' +
                 ", comments=" + comments +
                 '}';
+    }
+
+    // Owner class to match the owner object in JSON response
+    public static class Owner implements Serializable {
+
+        public Owner() {}
+
+        public Owner(String id, String username) {
+            this.id = id;
+            this.username = username;
+        }
+
+        @SerializedName("_id")
+        private String id;
+
+        @SerializedName("username")
+        private String username;
+
+        // Getters and Setters
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        @Override
+        public String toString() {
+            return "Owner{" +
+                    "id='" + id + '\'' +
+                    ", username='" + username + '\'' +
+                    '}';
+        }
     }
 }

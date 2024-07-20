@@ -16,6 +16,8 @@ import com.example.hemi_tube.repository.UserRepository;
 
 import java.util.List;
 
+import okhttp3.MultipartBody;
+
 public class UserViewModel extends AndroidViewModel {
     private UserRepository userRepository;
 
@@ -40,9 +42,10 @@ public class UserViewModel extends AndroidViewModel {
         return userRepository.getAllUsers();
     }
 
-    public void createUser(User user, RepositoryCallback<User> callback) {
-        userRepository.createUser(user, callback);
+    public void createUser(User user, MultipartBody.Part profileImage, RepositoryCallback<User> callback) {
+        userRepository.createUser(user, profileImage, callback);
     }
+
 
     public void updateUser(User user, RepositoryCallback<User> callback) {
         userRepository.updateUser(user, callback);

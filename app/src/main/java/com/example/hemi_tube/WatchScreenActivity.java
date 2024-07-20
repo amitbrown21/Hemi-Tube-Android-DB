@@ -344,7 +344,7 @@ public class WatchScreenActivity extends AppCompatActivity {
 
         tvTitle.setText(currentVideo.getTitle());
         tvOwnerName.setText(owner.getUsername());
-        tvSubscribers.setText(Utils.formatNumber(owner.getSubscribers()));
+        tvSubscribers.setText(owner.getSubscribers());
         tvVideoData.setText(currentVideo.getViews() + " views • " + currentVideo.getDate());
         tvLikesNumber.setText(Utils.likeBalance(currentVideo));
         tvVideoDescription.setText(currentVideo.getDescription());

@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
+import com.google.gson.Gson;
 
 import java.io.File;
 
@@ -121,43 +122,53 @@ public class UploadVideoActivity extends AppCompatActivity {
         } else if (currentUser == null) {
             Toast.makeText(this, "Please Sign in to upload a video", Toast.LENGTH_SHORT).show();
         } else {
-            // Prepare the file parts
-            File videoFile = new File(FileUtil.getPathFromUri(this, videoUri));
-            RequestBody videoRequestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(videoUri)), videoFile);
-            MultipartBody.Part videoBody = MultipartBody.Part.createFormData("video", videoFile.getName(), videoRequestFile);
+            try {
+                // Prepare the file parts
+                File videoFile = new File(FileUtil.getPathFromUri(this, videoUri));
+                RequestBody videoRequestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(videoUri)), videoFile);
+                MultipartBody.Part videoBody = MultipartBody.Part.createFormData("video", videoFile.getName(), videoRequestFile);
 
-            File thumbnailFile = new File(FileUtil.getPathFromUri(this, thumbnailUri));
-            RequestBody thumbnailRequestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(thumbnailUri)), thumbnailFile);
-            MultipartBody.Part thumbnailBody = MultipartBody.Part.createFormData("thumbnail", thumbnailFile.getName(), thumbnailRequestFile);
+                File thumbnailFile = new File(FileUtil.getPathFromUri(this, thumbnailUri));
+                RequestBody thumbnailRequestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(thumbnailUri)), thumbnailFile);
+                MultipartBody.Part thumbnailBody = MultipartBody.Part.createFormData("thumbnail", thumbnailFile.getName(), thumbnailRequestFile);
 
-            // Prepare other parts
-            RequestBody titlePart = RequestBody.create(MultipartBody.FORM, videoTitle);
-            RequestBody descriptionPart = RequestBody.create(MultipartBody.FORM, videoDescription);
-            RequestBody userIdPart = RequestBody.create(MultipartBody.FORM, currentUser.getId());
+                // Prepare other parts
+                RequestBody titlePart = RequestBody.create(MultipartBody.FORM, videoTitle);
+                RequestBody descriptionPart = RequestBody.create(MultipartBody.FORM, videoDescription);
 
-            videoViewModel.uploadVideo(userIdPart, titlePart, descriptionPart, videoBody, thumbnailBody).enqueue(new Callback<Video>() {
-                @Override
-                public void onResponse(Call<Video> call, Response<Video> response) {
-                    if (response.isSuccessful()) {
-                        Video result = response.body();
-                        Log.d(TAG, "Video uploaded successfully: " + result.getId());
-                        Toast.makeText(UploadVideoActivity.this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
-                        Intent resultIntent = new Intent();
-                        resultIntent.putExtra("uploaded_video_id", result.getId());
-                        setResult(RESULT_OK, resultIntent);
-                        finish();
-                    } else {
-                        Log.e(TAG, "Failed to upload video: " + response.message());
-                        Toast.makeText(UploadVideoActivity.this, "Failed to upload video: " + response.message(), Toast.LENGTH_SHORT).show();
+                // Create the owner object
+                Video.Owner owner = new Video.Owner(currentUser.getId(), currentUser.getUsername());
+                String ownerJson = new Gson().toJson(owner);
+                RequestBody ownerPart = RequestBody.create(MultipartBody.FORM, ownerJson);
+
+                videoViewModel.uploadVideo(ownerPart, titlePart, descriptionPart, videoBody, thumbnailBody).enqueue(new Callback<Video>() {
+                    @Override
+                    public void onResponse(Call<Video> call, Response<Video> response) {
+                        if (response.isSuccessful()) {
+                            Video result = response.body();
+                            Log.d(TAG, "Video uploaded successfully: " + result.getId());
+                            Toast.makeText(UploadVideoActivity.this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
+                            Intent resultIntent = new Intent();
+                            resultIntent.putExtra("uploaded_video_id", result.getId());
+                            setResult(RESULT_OK, resultIntent);
+                            finish();
+                        } else {
+                            Log.e(TAG, "Failed to upload video: " + response.message());
+                            Toast.makeText(UploadVideoActivity.this, "Failed to upload video: " + response.message(), Toast.LENGTH_SHORT).show();
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(Call<Video> call, Throwable t) {
-                    Log.e(TAG, "Failed to upload video: " + t.getMessage(), t);
-                    Toast.makeText(UploadVideoActivity.this, "Failed to upload video: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+                    @Override
+                    public void onFailure(Call<Video> call, Throwable t) {
+                        Log.e(TAG, "Failed to upload video: " + t.getMessage(), t);
+                        Toast.makeText(UploadVideoActivity.this, "Failed to upload video: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to get file path", e);
+                Toast.makeText(this, "Failed to get file path", Toast.LENGTH_SHORT).show();
+            }
         }
     }
+
 }

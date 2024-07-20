@@ -21,7 +21,7 @@ public class User implements Serializable {
     private String password;
     private String gender;
     private String profilePicture;
-    private int subscribers;
+    private String subscribers;
     @Ignore
     private List<Video> videos;
 
@@ -29,7 +29,7 @@ public class User implements Serializable {
     }
 
 
-    public User(@NonNull String id, String firstName, String lastName, String username, String password, String gender, String profilePicture, int subscribers) {
+    public User(@NonNull String id, String firstName, String lastName, String username, String password, String gender, String profilePicture, String subscribers) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -69,12 +69,12 @@ public class User implements Serializable {
         return profilePicture;
     }
 
-    public int getSubscribers() {
+    public String getSubscribers() {
         return subscribers;
     }
 
     // Setters
-    public void setSubscribers(int subscribers) {
+    public void setSubscribers(String subscribers) {
         this.subscribers = subscribers;
     }
 

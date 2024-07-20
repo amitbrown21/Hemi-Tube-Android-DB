@@ -27,7 +27,7 @@ public class Utils {
     }
 
     public static User getVideoOwner(Video video, List<User> userList) {
-        String ownerId = video.getOwner();
+        String ownerId = video.getOwner().getId();
 
         for (User user : userList) {
             if (user.getId() == ownerId) {

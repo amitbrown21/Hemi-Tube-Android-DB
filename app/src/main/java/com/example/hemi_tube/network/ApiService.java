@@ -35,9 +35,17 @@ public interface ApiService {
     @GET("videos/{videoId}/comments")
     Call<List<CommentObj>> getCommentsByVideoId(@Path("videoId") String videoId);
 
+    @Multipart
     @POST("users")
-    Call<User> createUser(@Body User user);
-
+    Call<User> createUser(
+            @Part("firstName") RequestBody firstName,
+            @Part("lastName") RequestBody lastName,
+            @Part("username") RequestBody username,
+            @Part("password") RequestBody password,
+            @Part("gender") RequestBody gender,
+            @Part MultipartBody.Part profileImage,
+            @Part("subscribers") RequestBody subscribers
+    );
     @PUT("users/{id}")
     Call<User> updateUser(@Path("id") String userId, @Body User user);
 
@@ -54,8 +62,8 @@ public interface ApiService {
     Call<User> verifyToken();
 
     // Video endpoints
-    @GET("videos")
-    Call<VideoResponse> getAllVideos();
+    @GET("videos/all")
+    Call<List<Video>> getAllVideos();
 
     @GET("videos/{pid}")
     Call<Video> getVideoById(@Path("pid") String videoId);

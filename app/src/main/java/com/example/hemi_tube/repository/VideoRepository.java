@@ -175,13 +175,10 @@ public class VideoRepository {
         executor.execute(() -> {
             try {
                 Log.d(TAG, "Refreshing videos from server");
-                Response<ApiService.VideoResponse> response = apiService.getAllVideos().execute();
+                Response<List<Video>> response = apiService.getAllVideos().execute();
                 if (response.isSuccessful() && response.body() != null) {
-                    ApiService.VideoResponse videoResponse = response.body();
-                    Log.d(TAG, "Received VideoResponse: " + videoResponse);
-                    List<Video> allVideos = new ArrayList<>();
-                    allVideos.addAll(videoResponse.getTopVideos());
-                    allVideos.addAll(videoResponse.getOtherVideos());
+                    List<Video> allVideos = response.body();
+                    Log.d(TAG, "Received videos: " + allVideos);
 
                     if (!allVideos.isEmpty()) {
                         videoDao.insertAll(allVideos);

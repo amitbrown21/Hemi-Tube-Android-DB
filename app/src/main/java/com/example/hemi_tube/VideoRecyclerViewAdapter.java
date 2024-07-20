@@ -2,6 +2,8 @@ package com.example.hemi_tube;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,8 +21,10 @@ import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
-import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.List;
 
 public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecyclerViewAdapter.VideoViewHolder> {
@@ -51,7 +55,7 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
         Video currVideo = videoList.get(position);
         holder.title.setText(currVideo.getTitle());
 
-        userViewModel.getUserById(currVideo.getOwner()).observe((LifecycleOwner) context, owner -> {
+        userViewModel.getUserById(currVideo.getOwner().getId()).observe((LifecycleOwner) context, owner -> {
             if (owner != null) {
                 String views = Utils.formatNumber(currVideo.getViews());
                 String metadata = owner.getUsername() + "  " + views + " views  " + currVideo.getDate();
@@ -88,28 +92,43 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
     }
 
     private void setThumbnail(ImageButton imageButton, String thumbnailUri) {
+        Log.d("VideoRecyclerViewAdapter", "Thumbnail URI: " + thumbnailUri);
         if (thumbnailUri != null && !thumbnailUri.isEmpty()) {
-            Picasso.get()
-                    .load(thumbnailUri.startsWith("http") ? thumbnailUri : "file://" + thumbnailUri)
-                    .resize(200, 200) // Resize image to reduce memory usage
-                    .centerCrop()
-                    .into(imageButton);
+            // Replace backslashes with forward slashes
+            String correctedThumbnailUri = thumbnailUri.replace("\\", "/");
+            Log.d("VideoRecyclerViewAdapter", "Corrected Thumbnail URI: " + correctedThumbnailUri);
+
+            File imgFile = new File(correctedThumbnailUri);
+            if (imgFile.exists()) {
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                imageButton.setImageBitmap(myBitmap);
+            } else {
+                Log.d("VideoRecyclerViewAdapter", "Thumbnail file does not exist: " + imgFile.getAbsolutePath());
+                imageButton.setImageResource(R.drawable.thumbnail_placeholder);
+            }
         } else {
+            Log.d("VideoRecyclerViewAdapter", "Thumbnail URI is null or empty");
             imageButton.setImageResource(R.drawable.thumbnail_placeholder);
         }
     }
 
     private void setProfilePicture(ImageView imageView, String picturePath) {
+        Log.d("VideoRecyclerViewAdapter", "Profile Picture Path: " + picturePath);
         if (picturePath != null && !picturePath.isEmpty()) {
-            Picasso.get()
-                    .load(picturePath.startsWith("http") ? picturePath : "file://" + picturePath)
-                    .resize(100, 100) // Resize image to reduce memory usage
-                    .centerCrop()
-                    .into(imageView);
+            File imgFile = new File(picturePath);
+            if (imgFile.exists()) {
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                imageView.setImageBitmap(myBitmap);
+            } else {
+                Log.d("VideoRecyclerViewAdapter", "Profile picture file does not exist: " + imgFile.getAbsolutePath());
+                imageView.setImageResource(R.drawable.profile);
+            }
         } else {
+            Log.d("VideoRecyclerViewAdapter", "Profile picture path is null or empty");
             imageView.setImageResource(R.drawable.profile);
         }
     }
+
 
     static class VideoViewHolder extends RecyclerView.ViewHolder {
         ImageButton thumbnail;

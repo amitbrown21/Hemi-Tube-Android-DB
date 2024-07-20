@@ -1,11 +1,15 @@
 package com.example.hemi_tube.viewmodel;
 
 import android.app.Application;
+import android.net.Uri;
+
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+
 import com.example.hemi_tube.entities.Video;
-import com.example.hemi_tube.repository.VideoRepository;
 import com.example.hemi_tube.repository.RepositoryCallback;
+import com.example.hemi_tube.repository.VideoRepository;
+
 import java.util.List;
 
 public class VideoViewModel extends AndroidViewModel {
@@ -28,8 +32,8 @@ public class VideoViewModel extends AndroidViewModel {
         return videoRepository.getVideosForUser(userId);
     }
 
-    public void createVideo(String userId, Video video, RepositoryCallback<Video> callback) {
-        videoRepository.createVideo(userId, video, callback);
+    public void createVideo(String userId, Video video, Uri videoUri, RepositoryCallback<Video> callback) {
+        videoRepository.createVideo(userId, video, videoUri, callback);
     }
 
     public void updateVideo(Video video, RepositoryCallback<Video> callback) {

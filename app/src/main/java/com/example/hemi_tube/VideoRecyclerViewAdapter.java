@@ -49,7 +49,7 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
         Video currVideo = videoList.get(position);
         holder.title.setText(currVideo.getTitle());
 
-        userViewModel.getUserById(currVideo.getOwnerId()).observe((MainActivity) context, owner -> {
+        userViewModel.getUserById(currVideo.getOwner()).observe((MainActivity) context, owner -> {
             if (owner != null) {
                 String views = Utils.formatNumber(currVideo.getViews());
                 String metadata = owner.getUsername() + "  " + views + " views  " + currVideo.getDate();

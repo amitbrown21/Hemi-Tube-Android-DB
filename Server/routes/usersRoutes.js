@@ -4,6 +4,7 @@ const usersController = require("../controllers/usersController");
 const videosController = require("../controllers/videosController");
 const commentController = require("../controllers/commentController");
 const authMiddleware = require("../middleware/auth");
+const upload = require('../middleware/upload'); 
 
 // Public routes
 router.post("/", usersController.createUser);
@@ -20,7 +21,7 @@ router.put("/:id", authMiddleware, usersController.updateUser);
 router.delete("/:id", authMiddleware, usersController.deleteUser);
 
 // Video routes under a user
-router.post("/:id/videos", authMiddleware, videosController.createVideo);
+router.post("/:id/videos", authMiddleware, upload.single('video'), videosController.createVideo);
 router.put("/:id/videos/:pid", authMiddleware, videosController.updateVideo);
 router.delete("/:id/videos/:pid", authMiddleware, videosController.deleteVideo);
 

@@ -111,7 +111,7 @@ public class UploadVideoActivity extends AppCompatActivity {
         String videoDescription = description.getText().toString();
 
         if (videoTitle.isEmpty() || videoDescription.isEmpty() || videoUri == null || thumbnailUri == null) {
-            Toast.makeText(this, "Please complete all fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please complete all fields and select a video", Toast.LENGTH_SHORT).show();
         } else if (currentUser == null) {
             Toast.makeText(this, "Please Sign in to upload a video", Toast.LENGTH_SHORT).show();
         } else {
@@ -135,11 +135,15 @@ public class UploadVideoActivity extends AppCompatActivity {
     }
 
     private void createVideo(Video video) {
-        videoViewModel.createVideo(currentUser.getId(), video, new RepositoryCallback<Video>() {
+        Log.d(TAG, "Starting video upload process");
+        Log.d(TAG, "Video URI: " + videoUri);
+        Log.d(TAG, "Video details: " + video.toString());
+
+        videoViewModel.createVideo(currentUser.getId(), video, videoUri, new RepositoryCallback<Video>() {
             @Override
             public void onSuccess(Video result) {
+                Log.d(TAG, "Video upload success: " + result.getId());
                 runOnUiThread(() -> {
-                    Log.d(TAG, "Video uploaded successfully: " + result.getId());
                     Toast.makeText(UploadVideoActivity.this, "Video uploaded successfully", Toast.LENGTH_SHORT).show();
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("uploaded_video_id", result.getId());
@@ -150,8 +154,8 @@ public class UploadVideoActivity extends AppCompatActivity {
 
             @Override
             public void onError(Exception e) {
+                Log.e(TAG, "Video upload error", e);
                 runOnUiThread(() -> {
-                    Log.e(TAG, "Failed to upload video: " + e.getMessage(), e);
                     Toast.makeText(UploadVideoActivity.this, "Failed to upload video: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }

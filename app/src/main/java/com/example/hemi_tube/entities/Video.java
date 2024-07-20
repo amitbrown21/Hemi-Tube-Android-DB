@@ -22,7 +22,7 @@ public class Video implements Serializable {
     private String id;
     private String url;
     private String title;
-    private String ownerId;
+    private String owner;
     private String date;
     private int views;
     private int likes;
@@ -41,7 +41,7 @@ public class Video implements Serializable {
         this.id = id;
         this.url = url;
         this.title = title;
-        this.ownerId = ownerId;
+        this.owner = ownerId;
         this.date = date;
         this.views = views;
         this.likes = likes;
@@ -65,8 +65,8 @@ public class Video implements Serializable {
         return title;
     }
 
-    public String getOwnerId() {
-        return ownerId;
+    public String getOwner() {
+        return owner;
     }
 
     public String getDate() {
@@ -121,8 +121,8 @@ public class Video implements Serializable {
         this.title = title;
     }
 
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
+    public void setOwner(String ownerId) {
+        this.owner = ownerId;
     }
 
     public void setDate(String date) {
@@ -166,7 +166,7 @@ public class Video implements Serializable {
                 "id=" + id +
                 ", url='" + url + '\'' +
                 ", title='" + title + '\'' +
-                ", ownerId=" + ownerId +
+                ", ownerId=" + owner +
                 ", date='" + date + '\'' +
                 ", views=" + views +
                 ", likes=" + likes +
@@ -195,7 +195,7 @@ public class Video implements Serializable {
         this.url = (String) videoMap.get("url");
         this.title = (String) videoMap.get("title");
         Map<String, Object> owner = (Map<String, Object>) videoMap.get("owner");
-        this.ownerId = (String) owner.get("_id");
+        this.owner = (String) owner.get("_id");
         this.date = (String) videoMap.get("date");
         this.views = ((Number) videoMap.get("views")).intValue();
         this.likes = ((Number) videoMap.get("likes")).intValue();
@@ -206,7 +206,7 @@ public class Video implements Serializable {
     }
     public void setOwnerFromObject(Map<String, Object> owner) {
         if (owner != null && owner.containsKey("_id")) {
-            this.ownerId = (String) owner.get("_id");
+            this.owner = (String) owner.get("_id");
         }
     }
 }

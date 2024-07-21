@@ -3,21 +3,13 @@ const Video = require("../models/videoModel");
 
 const createUser = async (userData) => {
   try {
-    console.log("Attempting to create user:", userData);
-    
     const existingUser = await User.findOne({ username: userData.username });
-    console.log("Existing user check result:", existingUser);
-    
     if (existingUser) {
-      console.log("Username already exists:", userData.username);
       throw new Error("Username is already taken");
     }
-    
     const user = new User(userData);
-    const savedUser = await user.save();
-    console.log("User created successfully:", savedUser);
-    
-    return savedUser;
+    await user.save();
+    return user;
   } catch (error) {
     console.error("Error creating user in usersServices:", error);
     throw error;

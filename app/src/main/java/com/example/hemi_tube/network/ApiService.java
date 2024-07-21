@@ -46,6 +46,7 @@ public interface ApiService {
             @Part MultipartBody.Part profileImage,
             @Part("subscribers") RequestBody subscribers
     );
+
     @PUT("users/{id}")
     Call<User> updateUser(@Path("id") String userId, @Body User user);
 
@@ -147,6 +148,7 @@ public interface ApiService {
             this.userId = userId;
         }
     }
+
     class VideoResponse {
         @SerializedName("topVideos")
         private List<Video> topVideos;

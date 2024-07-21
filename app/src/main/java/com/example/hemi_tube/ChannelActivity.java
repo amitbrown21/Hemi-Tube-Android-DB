@@ -86,7 +86,7 @@ public class ChannelActivity extends AppCompatActivity {
 
     private void updateUserUI(User user) {
         usernameText.setText(user.getUsername());
-        subscribersText.setText(String.format("%d subscribers", user.getSubscribers()));
+        subscribersText.setText(String.format("%s subscribers", String.valueOf(user.getSubscribers())));
 
         String profilePicturePath = user.getProfilePicture();
         if (profilePicturePath != null && profilePicturePath.startsWith("content://")) {

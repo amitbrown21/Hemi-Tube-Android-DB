@@ -34,6 +34,8 @@ import com.example.hemi_tube.viewmodel.CommentViewModel;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
 
+import java.util.List;
+
 public class WatchScreenActivity extends AppCompatActivity {
 
     private static final int EDIT_VIDEO_REQUEST = 1;
@@ -124,6 +126,12 @@ public class WatchScreenActivity extends AppCompatActivity {
                     Toast.makeText(this, "Error loading comments", Toast.LENGTH_SHORT).show();
                 }
             });
+        }
+    }
+
+    public void updateComments(List<CommentObj> comments) {
+        if (commentAdapter != null) {
+            commentAdapter.updateComments(comments);
         }
     }
 
@@ -278,8 +286,9 @@ public class WatchScreenActivity extends AppCompatActivity {
             return;
         }
 
-        CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
-        commentViewModel.createComment(currentUser.getId(), currentVideo.getId(), newComment, new RepositoryCallback<CommentObj>() {
+        CommentObj newComment = new CommentObj(null, currentVideo.getId(), currentUser.getUsername(), newCommentBody, currentUser.getProfilePicture(), currentUser.getId());
+
+        commentViewModel.createComment(newComment, new RepositoryCallback<CommentObj>() {
             @Override
             public void onSuccess(CommentObj result) {
                 runOnUiThread(() -> {
@@ -296,6 +305,8 @@ public class WatchScreenActivity extends AppCompatActivity {
             }
         });
     }
+
+
 
     private void onShare() {
         if (currentVideo != null) {

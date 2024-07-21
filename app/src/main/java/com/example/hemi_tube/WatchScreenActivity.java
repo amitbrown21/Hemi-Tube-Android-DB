@@ -278,8 +278,9 @@ public class WatchScreenActivity extends AppCompatActivity {
             return;
         }
 
-        CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
-        commentViewModel.createComment(currentUser.getId(), currentVideo.getId(), newComment, new RepositoryCallback<CommentObj>() {
+        CommentObj newComment = new CommentObj(null, currentVideo.getId(), currentUser.getUsername(), newCommentBody, currentUser.getProfilePicture(), currentUser.getId());
+
+        commentViewModel.createComment(newComment, new RepositoryCallback<CommentObj>() {
             @Override
             public void onSuccess(CommentObj result) {
                 runOnUiThread(() -> {
@@ -296,6 +297,8 @@ public class WatchScreenActivity extends AppCompatActivity {
             }
         });
     }
+
+
 
     private void onShare() {
         if (currentVideo != null) {

@@ -5,31 +5,42 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
+
+
 @Entity(tableName = "comments")
-public class CommentObj {
+public class CommentObj implements Serializable {
     @PrimaryKey
     @NonNull
     @ColumnInfo(name = "id")
+    @SerializedName("_id")
     private String id;
     private String videoId;
     private String username;
     private String body;
+    private String profilePicture;
+    private String userId;
 
     public CommentObj() {
     }
 
-    public CommentObj(String videoId, String username, String body) {
+    public CommentObj(String id, String videoId, String username, String body, String profilePicture, String userId) {
+        this.id = id;
         this.videoId = videoId;
         this.username = username;
         this.body = body;
+        this.profilePicture = profilePicture;
+        this.userId = userId;
     }
 
     @NonNull
     public String getId() {
-        return this.id;
+        return id;
     }
 
-    public void setId(String id) {
+    public void setId(@NonNull String id) {
         this.id = id;
     }
 
@@ -55,5 +66,33 @@ public class CommentObj {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    @Override
+    public String toString() {
+        return "Video{" +
+                "id='" + id + '\'' +
+                ", videoId='" + videoId + '\'' +
+                ", username='" + username + '\'' +
+                ", body=" + body +
+                ", profilePicture=" + profilePicture +
+                ", userId=" + userId +
+                '}';
     }
 }

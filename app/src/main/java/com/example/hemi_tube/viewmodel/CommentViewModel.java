@@ -20,9 +20,10 @@ public class CommentViewModel extends AndroidViewModel {
         return commentRepository.getCommentsForVideo(videoId);
     }
 
-    public void createComment(String userId, String videoId, CommentObj comment, RepositoryCallback<CommentObj> callback) {
-        commentRepository.createComment(userId, videoId, comment, callback);
+    public void createComment(CommentObj comment, RepositoryCallback<CommentObj> callback) {
+        commentRepository.createComment(comment, callback);
     }
+
 
     public void updateComment(String userId, String videoId, CommentObj comment, RepositoryCallback<CommentObj> callback) {
         commentRepository.updateComment(userId, videoId, comment, callback);

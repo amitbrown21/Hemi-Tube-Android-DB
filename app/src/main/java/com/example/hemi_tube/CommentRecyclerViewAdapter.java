@@ -82,8 +82,6 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         holder.deleteComment.setOnClickListener(v -> deleteComment(comment));
     }
 
-
-
     @Override
     public int getItemCount() {
         return commentList.size();
@@ -160,8 +158,9 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             return;
         }
 
-        CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
-        commentViewModel.createComment(currentUser.getId(), currentVideo.getId(), newComment, new RepositoryCallback<CommentObj>() {
+        CommentObj newComment = new CommentObj(null, currentVideo.getId(), currentUser.getUsername(), newCommentBody, currentUser.getProfilePicture(), currentUser.getId());
+
+        commentViewModel.createComment(newComment, new RepositoryCallback<CommentObj>() {
             @Override
             public void onSuccess(CommentObj result) {
                 commentViewModel.getCommentsForVideo(currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
@@ -175,6 +174,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             }
         });
     }
+
 
     private void setProfilePicture(ImageView imageView, String picturePath) {
         if (picturePath == null) {
@@ -208,6 +208,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             deleteComment = itemView.findViewById(R.id.deleteComment);
         }
     }
+
     private void openChannelActivity(String userId) {
         Intent intent = new Intent(context, ChannelActivity.class);
         intent.putExtra("userId", userId);

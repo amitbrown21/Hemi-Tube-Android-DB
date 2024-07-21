@@ -32,25 +32,42 @@ public class CommentRepository {
         return commentDao.getCommentsForVideoLive(videoId);
     }
 
-    public void createComment(String userId, String videoId, CommentObj comment, final RepositoryCallback<CommentObj> callback) {
+    public void createComment(CommentObj comment, RepositoryCallback<CommentObj> callback) {
         executor.execute(() -> {
             try {
-                Response<CommentObj> response = apiService.createComment(userId, videoId, comment).execute();
+                Log.d("CommentRepository", "Creating comment for video: " + comment.getVideoId());
+                Log.d("CommentRepository", "Comment data: " + comment.toString());
+
+                Response<CommentObj> response = apiService.createComment(comment.getUserId(), comment.getVideoId(), comment).execute();
+
+                Log.d("CommentRepository", "Created Commend:: " + response.body());
+                Log.d("CommentRepository", "Created Commend ID: " + response.body().getId());
+
+
                 if (response.isSuccessful() && response.body() != null) {
                     CommentObj createdComment = response.body();
+                    Log.d("CommentRepository", "New comment created: " + createdComment.toString());
+
+                    // Ensure the ID from MongoDB is set
+                    createdComment.setId(createdComment.getId());
                     commentDao.insert(createdComment);
                     callback.onSuccess(createdComment);
-                    Log.d(TAG, "Comment created successfully: " + createdComment.getId());
                 } else {
+                    Log.e("CommentRepository", "Failed to create comment: " + response.message());
+                    if (response.errorBody() != null) {
+                        Log.e("CommentRepository", "Error body: " + response.errorBody().string());
+                    }
                     callback.onError(new Exception("Failed to create comment"));
-                    Log.e(TAG, "Failed to create comment: " + response.message());
                 }
             } catch (IOException e) {
+                Log.e("CommentRepository", "IOException while creating comment", e);
                 callback.onError(e);
-                Log.e(TAG, "Error creating comment", e);
             }
         });
     }
+
+
+
 
     public void updateComment(String userId, String videoId, CommentObj comment, final RepositoryCallback<CommentObj> callback) {
         executor.execute(() -> {

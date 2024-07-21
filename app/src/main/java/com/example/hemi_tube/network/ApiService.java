@@ -111,8 +111,12 @@ public interface ApiService {
     @GET("users/{id}/videos/{pid}/comments")
     Call<List<CommentObj>> getCommentsByVideoId(@Path("id") int userId, @Path("pid") int videoId);
 
-    @POST("users/{id}/videos/{pid}/comments")
-    Call<CommentObj> createComment(@Path("id") String userId, @Path("pid") String videoId, @Body CommentObj comment);
+    @POST("users/{userId}/videos/{videoId}/comments")
+    Call<CommentObj> createComment(
+            @Path("userId") String userId,
+            @Path("videoId") String videoId,
+            @Body CommentObj comment
+    );
 
     @GET("users/{id}/videos/{pid}/comments/{commentId}")
     Call<CommentObj> getCommentById(@Path("id") String userId, @Path("pid") String videoId, @Path("commentId") String commentId);

@@ -14,11 +14,26 @@ function generateRandomUsers(count) {
   const users = [];
   const genders = ["male", "female", "other"];
   const profilePictures = [
-    "/assets/img/user1.jpg",
-    "/assets/img/user2.jpg",
-    "/assets/img/user3.jpg",
-    "/assets/img/user4.jpg",
-    "/assets/img/user5.jpg",
+    "../uploads/thumbnails/user1.jpg",
+    "../uploads/thumbnails/user2.jpg",
+    "../uploads/thumbnails/user3.jpg",
+    "../uploads/thumbnails/user4.jpg",
+    "../uploads/thumbnails/user5.jpg",
+    "../uploads/thumbnails/user6.jpg",
+    "../uploads/thumbnails/user7.jpg",
+    "../uploads/thumbnails/user8.jpg",
+    "../uploads/thumbnails/user9.jpg",
+    "../uploads/thumbnails/user10.jpg",
+    "../uploads/thumbnails/user11.jpg",
+    "../uploads/thumbnails/user12.jpg",
+    "../uploads/thumbnails/user13.jpg",
+    "../uploads/thumbnails/user14.jpg",
+    "../uploads/thumbnails/user15.jpg",
+    "../uploads/thumbnails/user16.jpg",
+    "../uploads/thumbnails/user17.jpg",
+    "../uploads/thumbnails/user18.jpg",
+    "../uploads/thumbnails/user19.jpg",
+    "../uploads/thumbnails/user20.jpg",
   ];
 
   const usernames = [

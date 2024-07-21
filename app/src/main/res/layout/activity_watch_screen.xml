@@ -138,21 +138,22 @@
 
             <ImageButton
                 android:id="@+id/like"
-                android:layout_width="wrap_content"
+                android:layout_width="37dp"
                 android:layout_height="match_parent"
-                android:layout_gravity="center"
+                android:layout_gravity="left"
                 android:background="@android:color/transparent"
                 android:contentDescription="@string/like_button"
-                android:padding="10dp"
-                app:srcCompat="@drawable/thumbs_up_filled" />
+                android:padding="8dp"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/thumbs_up" />
 
             <TextView
                 android:id="@+id/likes_number"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="0dp"
-                android:gravity="center"
-                android:paddingEnd="5dp"
+                android:gravity="left"
+                android:paddingEnd="10dp"
                 android:text="@string/likes_number"
                 android:textColor="@color/text_color"
                 tools:ignore="RtlSymmetry" />
@@ -160,20 +161,20 @@
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
-                android:layout_gravity="center"
+                android:layout_gravity="left"
                 android:layout_marginVertical="4dp"
                 android:background="@android:color/darker_gray" />
 
             <ImageButton
                 android:id="@+id/dislike"
-                android:layout_width="37dp"
+                android:layout_width="40dp"
                 android:layout_height="match_parent"
-                android:layout_gravity="center"
+                android:layout_gravity="left"
                 android:background="@android:color/transparent"
                 android:contentDescription="@string/dislike_button"
-                android:paddingStart="5dp"
-                android:paddingEnd="10dp"
-                app:srcCompat="@drawable/thumbs_down_filled"
+                android:padding="8dp"
+                app:srcCompat="@drawable/thumbs_down"
+                android:scaleType="centerCrop"
                 tools:ignore="RedundantDescriptionCheck,RtlSymmetry" />
 
         </LinearLayout>
@@ -234,15 +235,16 @@
     </LinearLayout>
 
 
-
     <ViewFlipper
         android:id="@+id/viewFlipper"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/feedback_layout">
+        app:layout_constraintTop_toBottomOf="@id/feedback_layout"
+        app:layout_constraintVertical_bias="0.0">
 
         <include layout="@layout/video_list" />
 

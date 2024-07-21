@@ -1,7 +1,6 @@
 package com.example.hemi_tube;
 
 import android.graphics.Outline;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewOutlineProvider;
@@ -13,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.viewmodel.UserViewModel;
@@ -21,7 +21,6 @@ import com.example.hemi_tube.viewmodel.VideoViewModel;
 import java.util.List;
 
 public class ChannelActivity extends AppCompatActivity {
-
     private ImageView profileImage;
     private TextView usernameText;
     private TextView subscribersText;
@@ -32,28 +31,15 @@ public class ChannelActivity extends AppCompatActivity {
     private VideoViewModel videoViewModel;
 
     private User channelUser;
+    private boolean dataLoaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_channel);
 
-        profileImage = findViewById(R.id.profileImage);
-
-        // Make the ImageView circular
-        profileImage.setOutlineProvider(new ViewOutlineProvider() {
-            @Override
-            public void getOutline(View view, Outline outline) {
-                outline.setOval(0, 0, view.getWidth(), view.getHeight());
-            }
-        });
-        profileImage.setClipToOutline(true);
-        usernameText = findViewById(R.id.usernameText);
-        subscribersText = findViewById(R.id.subscribersText);
-        videosRecyclerView = findViewById(R.id.videosRecyclerView);
-
-        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
-        videoViewModel = new ViewModelProvider(this).get(VideoViewModel.class);
+        initializeViews();
+        setupViewModels();
 
         String userId = getIntent().getStringExtra("userId");
         if (userId == null || userId.isEmpty()) {
@@ -64,14 +50,34 @@ public class ChannelActivity extends AppCompatActivity {
         loadChannelData(userId);
     }
 
+    private void initializeViews() {
+        profileImage = findViewById(R.id.profileImage);
+        profileImage.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setOval(0, 0, view.getWidth(), view.getHeight());
+            }
+        });
+        profileImage.setClipToOutline(true);
+        usernameText = findViewById(R.id.usernameText);
+        subscribersText = findViewById(R.id.subscribersText);
+        videosRecyclerView = findViewById(R.id.videosRecyclerView);
+    }
+
+    private void setupViewModels() {
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        videoViewModel = new ViewModelProvider(this).get(VideoViewModel.class);
+    }
+
     private void loadChannelData(String userId) {
+        if (dataLoaded) return;
+
         userViewModel.getUserById(userId).observe(this, user -> {
-            if (user != null) {
+            if (user != null && !dataLoaded) {
                 channelUser = user;
                 updateUserUI(user);
                 loadUserVideos(userId);
-            } else {
-                finish();
+                dataLoaded = true;
             }
         });
     }
@@ -86,14 +92,17 @@ public class ChannelActivity extends AppCompatActivity {
 
     private void updateUserUI(User user) {
         usernameText.setText(user.getUsername());
-        subscribersText.setText(String.format("%s subscribers", String.valueOf(user.getSubscribers())));
+        subscribersText.setText(String.format("%s subscribers", user.getSubscribers()));
 
         String profilePicturePath = user.getProfilePicture();
-        if (profilePicturePath != null && profilePicturePath.startsWith("content://")) {
-            profileImage.setImageURI(Uri.parse(profilePicturePath));
-        } else if (profilePicturePath != null && profilePicturePath.contains("/")) {
-            int resourceId = getResources().getIdentifier(profilePicturePath.substring(profilePicturePath.lastIndexOf("/") + 1, profilePicturePath.lastIndexOf(".")), "drawable", getPackageName());
-            profileImage.setImageResource(resourceId != 0 ? resourceId : R.drawable.profile);
+        if (profilePicturePath != null && !profilePicturePath.isEmpty()) {
+            String imageUrl = "http://10.0.2.2:3000/" + profilePicturePath.replace("\\", "/");
+            Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.profile)
+                    .error(R.drawable.profile)
+                    .circleCrop()
+                    .into(profileImage);
         } else {
             profileImage.setImageResource(R.drawable.profile);
         }

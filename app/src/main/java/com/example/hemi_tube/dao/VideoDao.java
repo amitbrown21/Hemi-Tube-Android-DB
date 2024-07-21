@@ -36,10 +36,10 @@ public interface VideoDao {
     LiveData<Video> getVideoByIdLive(String videoId);
 
     // Use a JSON function to extract the ownerId
-    @Query("SELECT * FROM videos WHERE json_extract(owner, '$.id') = :userId")
+    @Query("SELECT * FROM videos WHERE owner LIKE '%' || :userId || '%'")
     List<Video> getVideosForUser(String userId);
 
-    @Query("SELECT * FROM videos WHERE json_extract(owner, '$.id') = :userId")
+    @Query("SELECT * FROM videos WHERE owner LIKE '%' || :userId || '%'")
     LiveData<List<Video>> getVideosForUserLive(String userId);
 
     @Query("UPDATE videos SET views = views + 1 WHERE id = :videoId")

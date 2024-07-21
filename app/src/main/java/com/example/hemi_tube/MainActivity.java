@@ -27,6 +27,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.viewmodel.UserViewModel;
@@ -41,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int UPLOAD_VIDEO_REQUEST = 2;
     private static final int SIGN_UP_REQUEST = 3;
     public static final int WATCH_VIDEO_REQUEST = 4;
-
+    private static final int MENU_CHANNEL_ID = View.generateViewId();
     private List<Video> videos = new ArrayList<>();
     private User currentUser;
 
@@ -72,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize UI elements
         ImageButton modeButton = findViewById(R.id.modeButton);
-        ImageButton logInButton = findViewById(R.id.user_menu_btn);
         ImageButton uploadVideoButton = findViewById(R.id.uploadIcon);
         ImageButton homeButton = findViewById(R.id.home_menu_btn);
 
@@ -110,6 +110,8 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                 }
             });
+        } else {
+            updateUI(); // This will set up the default login button
         }
 
         loadVideos();
@@ -118,16 +120,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Theme
         modeButton.setOnClickListener(v -> modeChange());
-
-        // UserIcon
-        logInButton.setOnClickListener(v -> {
-            if (isSignedIn) {
-                showUserPopupMenu(v);
-            } else {
-                Intent logInIntent = new Intent(MainActivity.this, LogInActivity.class);
-                startActivityForResult(logInIntent, SIGN_IN_REQUEST);
-            }
-        });
 
         // UploadIcon
         uploadVideoButton.setOnClickListener(v -> {
@@ -314,14 +306,27 @@ public class MainActivity extends AppCompatActivity {
         PopupMenu popup = new PopupMenu(this, v);
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.menu_user, popup.getMenu());
+
         popup.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.menu_logout) {
+            int itemId = item.getItemId();
+            if (itemId == R.id.menu_channel) {
+                openChannelPage();
+                return true;
+            } else if (itemId == R.id.menu_logout) {
                 logout();
                 return true;
             }
             return false;
         });
         popup.show();
+    }
+
+    private void openChannelPage() {
+        if (currentUser != null) {
+            Intent intent = new Intent(MainActivity.this, ChannelActivity.class);
+            intent.putExtra("userId", currentUser.getId());
+            startActivity(intent);
+        }
     }
 
     private void logout() {
@@ -333,9 +338,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
+        ImageButton logInButton = findViewById(R.id.user_menu_btn);
+        if (isSignedIn && currentUser != null) {
+            // Load user's profile picture
+            String profilePicturePath = currentUser.getProfilePicture();
+            if (profilePicturePath != null && !profilePicturePath.isEmpty()) {
+                String imageUrl = "http://10.0.2.2:3000/" + profilePicturePath.replace("\\", "/");
+                Glide.with(this)
+                        .load(imageUrl)
+                        .placeholder(R.drawable.profile)
+                        .error(R.drawable.profile)
+                        .circleCrop()
+                        .into(logInButton);
+            } else {
+                logInButton.setImageResource(R.drawable.profile);
+            }
+            logInButton.setOnClickListener(this::showUserPopupMenu);
+        } else {
+            // Reset to default login button
+            logInButton.setImageResource(R.drawable.user_icon);
+            logInButton.setOnClickListener(v -> {
+                Intent logInIntent = new Intent(MainActivity.this, LogInActivity.class);
+                startActivityForResult(logInIntent, SIGN_IN_REQUEST);
+            });
+        }
+
         if (videoAdapter != null) {
             videoAdapter.updateCurrentUser(currentUser);
         }
-        // Update any UI elements that depend on the user's signed-in state
+        // Update any other UI elements that depend on the user's signed-in state
     }
 }

@@ -34,6 +34,8 @@ import com.example.hemi_tube.viewmodel.CommentViewModel;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
 
+import java.util.List;
+
 public class WatchScreenActivity extends AppCompatActivity {
 
     private static final int EDIT_VIDEO_REQUEST = 1;
@@ -124,6 +126,12 @@ public class WatchScreenActivity extends AppCompatActivity {
                     Toast.makeText(this, "Error loading comments", Toast.LENGTH_SHORT).show();
                 }
             });
+        }
+    }
+
+    public void updateComments(List<CommentObj> comments) {
+        if (commentAdapter != null) {
+            commentAdapter.updateComments(comments);
         }
     }
 

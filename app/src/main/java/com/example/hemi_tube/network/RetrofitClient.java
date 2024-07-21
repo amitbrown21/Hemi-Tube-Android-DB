@@ -4,6 +4,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.example.hemi_tube.entities.Video;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -36,16 +40,18 @@ public class RetrofitClient {
                 })
                 .build();
 
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Video.class, new VideoTypeAdapter())
+                .create();
+
         retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
-        // Log the successful creation of the Retrofit instance
         Log.d("RetrofitClient", "Retrofit instance created with base URL: " + BASE_URL);
     }
-
     public static synchronized RetrofitClient getInstance(Context context) {
         if (mInstance == null) {
             mInstance = new RetrofitClient(context.getApplicationContext());

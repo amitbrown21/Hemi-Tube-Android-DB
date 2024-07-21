@@ -51,6 +51,9 @@ public class WatchScreenActivity extends AppCompatActivity {
     private UserViewModel userViewModel;
     private CommentViewModel commentViewModel;
 
+    private ImageButton likeButton;
+    private ImageButton dislikeButton;
+
     private VideoRecyclerViewAdapter videoAdapter;
     private CommentRecyclerViewAdapter commentAdapter;
 
@@ -62,7 +65,10 @@ public class WatchScreenActivity extends AppCompatActivity {
         videoViewModel = new ViewModelProvider(this).get(VideoViewModel.class);
         userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         commentViewModel = new ViewModelProvider(this).get(CommentViewModel.class);
+        likeButton = findViewById(R.id.like);
+        dislikeButton = findViewById(R.id.dislike);
 
+        setupListenersAndData();
         handleIntent(getIntent());
         setupFlipper();
         setupListenersAndData();
@@ -138,33 +144,20 @@ public class WatchScreenActivity extends AppCompatActivity {
             Glide.with(this)
                     .load(imageUrl)
                     .placeholder(R.drawable.profile)
-                    .centerCrop() // Ensure proper scaling
                     .into(imageView);
         } else {
             Log.d("WatchScreenActivity", "Profile picture path is null or empty");
             imageView.setImageResource(R.drawable.profile);
         }
 
-        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP); // Ensure proper scaling
+        // Add OnClickListener to the profile picture
+        imageView.setOnClickListener(v -> {
+            if (currentVideo != null && currentVideo.getOwner() != null) {
+                openChannelActivity(currentVideo.getOwner().getId());
+            }
+        });
     }
 
-    private void setThumbnail(ImageView imageView, String thumbnailPath) {
-        Log.d("WatchScreenActivity", "Thumbnail Path: " + thumbnailPath);
-        if (thumbnailPath != null && !thumbnailPath.isEmpty()) {
-            // Construct the full URL to the image on the server
-            String imageUrl = "http://10.0.2.2:3000/" + thumbnailPath.replace("\\", "/");
-            Log.d("WatchScreenActivity", "Thumbnail URL: " + imageUrl);
-
-            // Use an image loading library like Picasso or Glide to load the image
-            Glide.with(this)
-                    .load(imageUrl)
-                    .placeholder(R.drawable.thumbnail_placeholder)
-                    .into(imageView);
-        } else {
-            Log.d("WatchScreenActivity", "Thumbnail path is null or empty");
-            imageView.setImageResource(R.drawable.thumbnail_placeholder);
-        }
-    }
 
     private void setupFlipper() {
         RecyclerView vidRecyclerView = findViewById(R.id.video_layout);
@@ -202,10 +195,7 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void setupListenersAndData() {
-        ImageButton likeButton = findViewById(R.id.like);
         likeButton.setOnClickListener(v -> onLike());
-
-        ImageButton dislikeButton = findViewById(R.id.dislike);
         dislikeButton.setOnClickListener(v -> onDislike());
 
         Button shareButton = findViewById(R.id.share);
@@ -239,6 +229,7 @@ public class WatchScreenActivity extends AppCompatActivity {
                 videoViewModel.incrementLikes(currentVideo.getId());
                 isLiked = true;
             }
+            updateLikeDislikeUI();
         }
     }
 
@@ -260,7 +251,17 @@ public class WatchScreenActivity extends AppCompatActivity {
                 videoViewModel.incrementDislikes(currentVideo.getId());
                 isDisliked = true;
             }
+            updateLikeDislikeUI();
         }
+    }
+
+    private void updateLikeDislikeUI() {
+        likeButton.setImageResource(isLiked ? R.drawable.thumbs_up_filled : R.drawable.thumbs_up);
+        dislikeButton.setImageResource(isDisliked ? R.drawable.thumbs_down_filled : R.drawable.thumbs_down);
+
+        // Update like count
+        TextView tvLikesNumber = findViewById(R.id.likes_number);
+        tvLikesNumber.setText(Utils.likeBalance(currentVideo));
     }
 
     private void submitComment() {
@@ -425,6 +426,7 @@ public class WatchScreenActivity extends AppCompatActivity {
 
         setupVideoPlayer();
         setupEditButton();
+        updateLikeDislikeUI();
     }
 
     private void setupVideoPlayer() {

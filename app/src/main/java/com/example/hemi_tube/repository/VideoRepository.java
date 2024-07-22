@@ -126,10 +126,24 @@ public class VideoRepository {
         executor.execute(() -> {
             videoDao.incrementLikes(videoId);
             try {
-                apiService.incrementLikes(videoId).execute();
-                Log.d(TAG, "Likes incremented successfully for video: " + videoId);
+                Response<Video> response = apiService.incrementLikes(videoId).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    Video updatedVideo = response.body();
+                    videoDao.update(updatedVideo);
+                    Log.d(TAG, "Likes incremented successfully for video: " + videoId);
+                } else {
+                    Log.e(TAG, "Failed to increment likes: " + response.message());
+                    // Rollback the local change if the server update failed
+                    videoDao.decrementLikes(videoId);
+                }
             } catch (IOException e) {
                 Log.e(TAG, "Error incrementing likes for video: " + videoId, e);
+                // Rollback the local change if there was an error
+                videoDao.decrementLikes(videoId);
+            } catch (Exception e) {
+                Log.e(TAG, "Unexpected error incrementing likes for video: " + videoId, e);
+                // Rollback the local change if there was an error
+                videoDao.decrementLikes(videoId);
             }
         });
     }
@@ -138,10 +152,24 @@ public class VideoRepository {
         executor.execute(() -> {
             videoDao.decrementLikes(videoId);
             try {
-                apiService.decrementLikes(videoId).execute();
-                Log.d(TAG, "Likes decremented successfully for video: " + videoId);
+                Response<Video> response = apiService.decrementLikes(videoId).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    Video updatedVideo = response.body();
+                    videoDao.update(updatedVideo);
+                    Log.d(TAG, "Likes decremented successfully for video: " + videoId);
+                } else {
+                    Log.e(TAG, "Failed to decrement likes: " + response.message());
+                    // Rollback the local change if the server update failed
+                    videoDao.incrementLikes(videoId);
+                }
             } catch (IOException e) {
                 Log.e(TAG, "Error decrementing likes for video: " + videoId, e);
+                // Rollback the local change if there was an error
+                videoDao.incrementLikes(videoId);
+            } catch (Exception e) {
+                Log.e(TAG, "Unexpected error decrementing likes for video: " + videoId, e);
+                // Rollback the local change if there was an error
+                videoDao.incrementLikes(videoId);
             }
         });
     }
@@ -150,10 +178,24 @@ public class VideoRepository {
         executor.execute(() -> {
             videoDao.incrementDislikes(videoId);
             try {
-                apiService.incrementDislikes(videoId).execute();
-                Log.d(TAG, "Dislikes incremented successfully for video: " + videoId);
+                Response<Video> response = apiService.incrementDislikes(videoId).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    Video updatedVideo = response.body();
+                    videoDao.update(updatedVideo);
+                    Log.d(TAG, "Dislikes incremented successfully for video: " + videoId);
+                } else {
+                    Log.e(TAG, "Failed to increment dislikes: " + response.message());
+                    // Rollback the local change if the server update failed
+                    videoDao.decrementDislikes(videoId);
+                }
             } catch (IOException e) {
                 Log.e(TAG, "Error incrementing dislikes for video: " + videoId, e);
+                // Rollback the local change if there was an error
+                videoDao.decrementDislikes(videoId);
+            } catch (Exception e) {
+                Log.e(TAG, "Unexpected error incrementing dislikes for video: " + videoId, e);
+                // Rollback the local change if there was an error
+                videoDao.decrementDislikes(videoId);
             }
         });
     }
@@ -162,10 +204,24 @@ public class VideoRepository {
         executor.execute(() -> {
             videoDao.decrementDislikes(videoId);
             try {
-                apiService.decrementDislikes(videoId).execute();
-                Log.d(TAG, "Dislikes decremented successfully for video: " + videoId);
+                Response<Video> response = apiService.decrementDislikes(videoId).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    Video updatedVideo = response.body();
+                    videoDao.update(updatedVideo);
+                    Log.d(TAG, "Dislikes decremented successfully for video: " + videoId);
+                } else {
+                    Log.e(TAG, "Failed to decrement dislikes: " + response.message());
+                    // Rollback the local change if the server update failed
+                    videoDao.incrementDislikes(videoId);
+                }
             } catch (IOException e) {
                 Log.e(TAG, "Error decrementing dislikes for video: " + videoId, e);
+                // Rollback the local change if there was an error
+                videoDao.incrementDislikes(videoId);
+            } catch (Exception e) {
+                Log.e(TAG, "Unexpected error decrementing dislikes for video: " + videoId, e);
+                // Rollback the local change if there was an error
+                videoDao.incrementDislikes(videoId);
             }
         });
     }

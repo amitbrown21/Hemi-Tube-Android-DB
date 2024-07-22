@@ -3,6 +3,7 @@ package com.example.hemi_tube.network;
 import com.example.hemi_tube.entities.Video;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
@@ -29,25 +30,29 @@ public class VideoTypeAdapter extends TypeAdapter<Video> {
                     video.setTitle(in.nextString());
                     break;
                 case "owner":
-                    in.beginObject();
-                    String ownerId = null;
-                    String ownerUsername = null;
-                    while (in.hasNext()) {
-                        switch (in.nextName()) {
-                            case "_id":
-                                ownerId = in.nextString();
-                                break;
-                            case "username":
-                                ownerUsername = in.nextString();
-                                break;
-                            default:
-                                in.skipValue();
-                                break;
+                    if (in.peek() == JsonToken.BEGIN_OBJECT) {
+                        in.beginObject();
+                        String ownerId = null;
+                        String ownerUsername = null;
+                        while (in.hasNext()) {
+                            switch (in.nextName()) {
+                                case "_id":
+                                    ownerId = in.nextString();
+                                    break;
+                                case "username":
+                                    ownerUsername = in.nextString();
+                                    break;
+                                default:
+                                    in.skipValue();
+                                    break;
+                            }
                         }
+                        in.endObject();
+                        video.setOwner(new Video.Owner(ownerId, ownerUsername));
+                    } else {
+                        String ownerId = in.nextString();
+                        video.setOwner(new Video.Owner(ownerId, null));
                     }
-                    in.endObject();
-                    Video.Owner owner = new Video.Owner(ownerId, ownerUsername);
-                    video.setOwner(owner);
                     break;
                 case "views":
                     video.setViews(in.nextInt());

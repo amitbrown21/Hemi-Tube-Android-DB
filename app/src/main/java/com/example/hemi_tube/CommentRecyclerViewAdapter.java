@@ -16,6 +16,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.hemi_tube.entities.CommentObj;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
@@ -59,30 +60,18 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         holder.username.setText(comment.getUsername());
         holder.body.setText(comment.getBody());
 
-        userViewModel.getUserByUsername(comment.getUsername()).observe((LifecycleOwner) context, commenter -> {
-            if (commenter != null) {
-                setProfilePicture(holder.profilePic, commenter.getProfilePicture());
+        setProfilePicture(holder.profilePic, comment.getProfilePicture());
 
-                // Add click listener to the profile picture
-                holder.profilePic.setOnClickListener(v -> openChannelActivity(commenter.getId()));
+        holder.profilePic.setOnClickListener(v -> openChannelActivity(comment.getUserId()));
+        holder.username.setOnClickListener(v -> openChannelActivity(comment.getUserId()));
 
-                // Add click listener to the username text
-                holder.username.setOnClickListener(v -> openChannelActivity(commenter.getId()));
-
-                // Store the commenter's ID in the holder's tag for later use if needed
-                holder.itemView.setTag(commenter.getId());
-            }
-        });
-
-        boolean isCurrentUserComment = currentUser != null && currentUser.getUsername().equals(comment.getUsername());
+        boolean isCurrentUserComment = currentUser != null && currentUser.getId().equals(comment.getUserId());
         holder.editComment.setVisibility(isCurrentUserComment ? View.VISIBLE : View.GONE);
         holder.deleteComment.setVisibility(isCurrentUserComment ? View.VISIBLE : View.GONE);
 
         holder.editComment.setOnClickListener(v -> editComment(comment));
         holder.deleteComment.setOnClickListener(v -> deleteComment(comment));
     }
-
-
 
     @Override
     public int getItemCount() {
@@ -135,7 +124,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                     commentViewModel.deleteComment(currentUser.getId(), currentVideo.getId(), comment.getId(), new RepositoryCallback<Void>() {
                         @Override
                         public void onSuccess(Void result) {
-                            commentViewModel.getCommentsForVideo(currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
+                            commentViewModel.getCommentsForVideo(currentUser.getId(), currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
                                 CommentRecyclerViewAdapter.this.updateComments(comments);
                             });
                         }
@@ -160,11 +149,18 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             return;
         }
 
-        CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
+        CommentObj newComment = new CommentObj(
+                currentVideo.getId(),
+                currentUser.getUsername(),
+                newCommentBody,
+                currentUser.getProfilePicture(),
+                currentUser.getId()
+        );
+
         commentViewModel.createComment(currentUser.getId(), currentVideo.getId(), newComment, new RepositoryCallback<CommentObj>() {
             @Override
             public void onSuccess(CommentObj result) {
-                commentViewModel.getCommentsForVideo(currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
+                commentViewModel.getCommentsForVideo(currentUser.getId(), currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
                     CommentRecyclerViewAdapter.this.updateComments(comments);
                 });
             }
@@ -177,8 +173,14 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
     }
 
     private void setProfilePicture(ImageView imageView, String picturePath) {
-        if (picturePath == null) {
+        if (picturePath == null || picturePath.isEmpty()) {
             imageView.setImageResource(R.drawable.profile);
+        } else if (picturePath.startsWith("http://") || picturePath.startsWith("https://")) {
+            Glide.with(context)
+                    .load(picturePath)
+                    .placeholder(R.drawable.profile)
+                    .error(R.drawable.profile)
+                    .into(imageView);
         } else if (picturePath.startsWith("content://")) {
             try {
                 imageView.setImageURI(Uri.parse(picturePath));
@@ -208,6 +210,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             deleteComment = itemView.findViewById(R.id.deleteComment);
         }
     }
+
     private void openChannelActivity(String userId) {
         Intent intent = new Intent(context, ChannelActivity.class);
         intent.putExtra("userId", userId);

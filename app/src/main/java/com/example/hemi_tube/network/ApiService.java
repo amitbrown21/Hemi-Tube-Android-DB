@@ -13,6 +13,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
@@ -32,8 +33,8 @@ public interface ApiService {
     @GET("users/{username}")
     Call<User> getUserByUsername(@Path("username") String username);
 
-    @GET("videos/{videoId}/comments")
-    Call<List<CommentObj>> getCommentsByVideoId(@Path("videoId") String videoId);
+    @GET("users/{userId}/videos/{videoId}/comments")
+    Call<List<CommentObj>> getCommentsByVideoId(@Path("userId") String userId, @Path("videoId") String videoId);
 
     @Multipart
     @POST("users")
@@ -111,9 +112,11 @@ public interface ApiService {
     @GET("users/{id}/videos/{pid}/comments")
     Call<List<CommentObj>> getCommentsByVideoId(@Path("id") int userId, @Path("pid") int videoId);
 
-    @POST("users/{id}/videos/{pid}/comments")
-    Call<CommentObj> createComment(@Path("id") String userId, @Path("pid") String videoId, @Body CommentObj comment);
-
+    @POST("users/{userId}/videos/{videoId}/comments")
+    Call<CommentObj> createComment(@Path("userId") String userId,
+                                   @Path("videoId") String videoId,
+                                   @Body CommentObj comment,
+                                   @Header("Authorization") String token);
     @GET("users/{id}/videos/{pid}/comments/{commentId}")
     Call<CommentObj> getCommentById(@Path("id") String userId, @Path("pid") String videoId, @Path("commentId") String commentId);
 

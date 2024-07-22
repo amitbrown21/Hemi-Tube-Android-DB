@@ -16,6 +16,9 @@ public interface CommentDao {
     @Update
     void update(CommentObj comment);
 
+    @Query("DELETE FROM comments WHERE videoId = :videoId")
+    void deleteAllCommentsForVideo(String videoId);
+
     @Delete
     void delete(CommentObj comment);
 

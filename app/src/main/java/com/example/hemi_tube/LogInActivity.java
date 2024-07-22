@@ -18,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.network.ApiService;
+import com.example.hemi_tube.repository.CommentRepository;
 import com.example.hemi_tube.repository.RepositoryCallback;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 
@@ -71,10 +72,12 @@ public class LogInActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     Log.d(TAG, "Login successful. Token: " + result.token + ", UserId: " + result.userId);
 
-                    // Store the token and user ID in SharedPreferences
+                    // Use CommentRepository to save the token
+                    CommentRepository.saveAuthToken(LogInActivity.this, result.token);
+
+                    // Store the user ID in SharedPreferences
                     SharedPreferences prefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE);
                     SharedPreferences.Editor editor = prefs.edit();
-                    editor.putString("jwt_token", result.token);
                     editor.putString("user_id", result.userId);
                     editor.apply();
 
@@ -82,7 +85,7 @@ public class LogInActivity extends AppCompatActivity {
 
                     // Start MainActivity and clear the activity stack
                     Intent mainIntent = new Intent(LogInActivity.this, MainActivity.class);
-                    mainIntent.putExtra("user_id", result.userId);  // Add this line
+                    mainIntent.putExtra("user_id", result.userId);
                     mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(mainIntent);
                     finish();

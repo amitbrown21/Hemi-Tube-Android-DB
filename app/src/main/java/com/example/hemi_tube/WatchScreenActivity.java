@@ -109,8 +109,8 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void loadComments() {
-        if (currentVideo != null) {
-            commentViewModel.getCommentsForVideo(currentVideo.getId()).observe(this, comments -> {
+        if (currentVideo != null && currentUser != null) {
+            commentViewModel.getCommentsForVideo(currentUser.getId(), currentVideo.getId()).observe(this, comments -> {
                 if (comments != null) {
                     if (commentAdapter == null) {
                         RecyclerView commRecyclerView = findViewById(R.id.commentSection);
@@ -278,13 +278,27 @@ public class WatchScreenActivity extends AppCompatActivity {
             return;
         }
 
-        CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
+        if (newCommentBody.trim().isEmpty()) {
+            Toast.makeText(this, "Comment cannot be empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        CommentObj newComment = new CommentObj(
+                currentVideo.getId(),
+                currentUser.getUsername(),
+                newCommentBody,
+                currentUser.getProfilePicture(),
+                currentUser.getId()
+        );
+
         commentViewModel.createComment(currentUser.getId(), currentVideo.getId(), newComment, new RepositoryCallback<CommentObj>() {
             @Override
             public void onSuccess(CommentObj result) {
                 runOnUiThread(() -> {
                     commentTextField.setText("");
                     Toast.makeText(WatchScreenActivity.this, "Comment added successfully", Toast.LENGTH_SHORT).show();
+                    // Refresh comments
+                    loadComments();
                 });
             }
 

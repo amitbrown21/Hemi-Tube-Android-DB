@@ -10,10 +10,8 @@ import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.network.ApiService;
 import com.example.hemi_tube.network.RetrofitClient;
-import com.example.hemi_tube.repository.RepositoryCallback;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -177,23 +175,20 @@ public class VideoRepository {
             try {
                 Log.d(TAG, "Refreshing videos from server");
                 Response<List<Video>> response = apiService.getAllVideos().execute();
+                Log.d(TAG, "Response code: " + response.code());
                 if (response.isSuccessful() && response.body() != null) {
                     List<Video> allVideos = response.body();
-                    Log.d(TAG, "Received videos: " + allVideos);
-
-                    if (!allVideos.isEmpty()) {
-                        videoDao.insertAll(allVideos);
-                        Log.d(TAG, "Videos refreshed successfully, count: " + allVideos.size());
-                    } else {
-                        Log.w(TAG, "No valid videos received from server");
+                    Log.d(TAG, "Received " + allVideos.size() + " videos");
+                    for (Video video : allVideos) {
+                        Log.d(TAG, "Video: " + video.toString());
                     }
+                    videoDao.insertAll(allVideos);
+                    Log.d(TAG, "Videos inserted into local database");
                 } else {
                     Log.e(TAG, "Failed to refresh videos: " + response.message());
                 }
-            } catch (IOException e) {
-                Log.e(TAG, "Error refreshing videos", e);
             } catch (Exception e) {
-                Log.e(TAG, "Unexpected error refreshing videos", e);
+                Log.e(TAG, "Error refreshing videos", e);
             }
         });
     }

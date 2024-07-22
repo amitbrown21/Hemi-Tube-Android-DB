@@ -4,6 +4,9 @@
         android:id="@+id/menu_channel"
         android:title="Go to Channel Page" />
     <item
+        android:id="@+id/menu_edit_user"
+        android:title="Edit User" />
+    <item
         android:id="@+id/menu_logout"
         android:title="Logout" />
 </menu>

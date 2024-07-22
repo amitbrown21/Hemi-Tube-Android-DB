@@ -47,8 +47,18 @@ public interface ApiService {
             @Part("subscribers") RequestBody subscribers
     );
 
+    @Multipart
     @PUT("users/{id}")
-    Call<User> updateUser(@Path("id") String userId, @Body User user);
+    Call<User> updateUser(
+            @Path("id") String userId,
+            @Part("firstName") RequestBody firstName,
+            @Part("lastName") RequestBody lastName,
+            @Part("username") RequestBody username,
+            @Part("password") RequestBody password,
+            @Part("gender") RequestBody gender,
+            @Part MultipartBody.Part profileImage,
+            @Part("subscribers") RequestBody subscribers
+    );
 
     @DELETE("users/{id}")
     Call<Void> deleteUser(@Path("id") String userId);
@@ -80,8 +90,8 @@ public interface ApiService {
                             @Part MultipartBody.Part video,
                             @Part MultipartBody.Part thumbnail);
 
-    @PUT("videos/{pid}")
-    Call<Video> updateVideo(@Path("pid") String videoId, @Body Video video);
+    @PUT("users/{userId}/videos/{pid}")
+    Call<Video> updateVideo(@Path("userId") String userId, @Path("pid") String videoId, @Body Video video);
 
     @DELETE("videos/{pid}")
     Call<Void> deleteVideo(@Path("pid") String videoId);

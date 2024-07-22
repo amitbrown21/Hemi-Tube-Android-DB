@@ -441,6 +441,7 @@ public class WatchScreenActivity extends AppCompatActivity {
         setupVideoPlayer();
         setupEditButton();
         updateLikeDislikeUI();
+        loadComments();
     }
 
     private void setupVideoPlayer() {

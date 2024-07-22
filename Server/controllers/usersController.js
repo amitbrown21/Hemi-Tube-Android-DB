@@ -59,13 +59,25 @@ const usersController = {
 
   updateUser: async (req, res) => {
     try {
+      const userData = req.body;
+      if (req.file) {
+        userData.profilePicture = path
+          .normalize(req.file.path)
+          .replace(/\\/g, "/");
+      }
+
+      console.log("Received user data for update:", userData);
+      console.log("Updating user with ID:", req.params.id);
+
       const updatedUser = await usersServices.updateUser(
         req.params.id,
-        req.body
+        userData
       );
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
       }
+
+      console.log("User updated successfully:", updatedUser);
       res.json(updatedUser);
     } catch (error) {
       res.status(400).json({ message: error.message });

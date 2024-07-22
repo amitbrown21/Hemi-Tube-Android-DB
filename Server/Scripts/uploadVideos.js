@@ -48,10 +48,10 @@ async function uploadVideos() {
       const randomUser = users[Math.floor(Math.random() * users.length)];
 
       const newVideo = new Video({
-        url: `../uploads/videos/${video.filename}.mp4`,
+        url: `uploads/${video.filename}.mp4`,
         title: video.title,
         owner: randomUser._id,
-        thumbnail: `../uploads/thumbnails/${video.filename}.jpg`,
+        thumbnail: `uploads/${video.filename}.jpg`,
         description: `This is a video about ${video.title.toLowerCase()}.`,
         duration: "0:30", // Placeholder duration
         views: Math.floor(Math.random() * 10000),

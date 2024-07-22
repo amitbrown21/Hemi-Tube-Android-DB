@@ -4,9 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +27,7 @@ import com.example.hemi_tube.viewmodel.CommentViewModel;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecyclerViewAdapter.CommentViewHolder> {
@@ -82,16 +86,18 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         holder.deleteComment.setOnClickListener(v -> deleteComment(comment));
     }
 
-
-
     @Override
     public int getItemCount() {
         return commentList.size();
     }
 
     public void updateComments(List<CommentObj> newComments) {
-        this.commentList.clear();
-        this.commentList.addAll(newComments);
+        if (newComments != null) {
+            this.commentList.clear();
+            this.commentList.addAll(newComments);
+        } else {
+            this.commentList.clear(); // Clear the list if newComments is null
+        }
         notifyDataSetChanged();
     }
 
@@ -100,55 +106,96 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         View dialogView = LayoutInflater.from(context).inflate(R.layout.edit_comment, null);
         builder.setView(dialogView);
 
-        TextView editText = dialogView.findViewById(R.id.edit_comment_text);
+        EditText editText = dialogView.findViewById(R.id.edit_comment_text);
         editText.setText(comment.getBody());
 
-        builder.setPositiveButton("Save", (dialog, which) -> {
+        Button saveButton = dialogView.findViewById(R.id.confirm_edit_button);
+        Button cancelButton = dialogView.findViewById(R.id.cancel_edit_button);
+
+        AlertDialog dialog = builder.create();
+
+        saveButton.setOnClickListener(v -> {
             String updatedText = editText.getText().toString();
             if (!updatedText.isEmpty()) {
                 comment.setBody(updatedText);
                 commentViewModel.updateComment(currentUser.getId(), currentVideo.getId(), comment, new RepositoryCallback<CommentObj>() {
                     @Override
                     public void onSuccess(CommentObj result) {
-                        notifyDataSetChanged();
+                        ((WatchScreenActivity) context).runOnUiThread(() -> {
+                            notifyDataSetChanged();
+                            Toast.makeText(context, "Comment updated successfully", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                        });
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        Toast.makeText(context, "Failed to update comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        ((WatchScreenActivity) context).runOnUiThread(() -> {
+                            Toast.makeText(context, "Failed to update comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
                     }
                 });
             }
         });
 
-        builder.setNegativeButton("Cancel", null);
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
 
-        AlertDialog dialog = builder.create();
         dialog.show();
     }
 
+
     private void deleteComment(CommentObj comment) {
-        new AlertDialog.Builder(context)
+        AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle("Delete Comment")
                 .setMessage("Are you sure you want to delete this comment?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    commentViewModel.deleteComment(currentUser.getId(), currentVideo.getId(), comment.getId(), new RepositoryCallback<Void>() {
+                .setPositiveButton("Yes", (dialogInterface, which) -> {
+                    commentViewModel.deleteComment(currentUser.getId(), currentVideo.getId(), comment.getId(), context, new RepositoryCallback<Void>() {
                         @Override
                         public void onSuccess(Void result) {
-                            commentViewModel.getCommentsForVideo(currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
-                                CommentRecyclerViewAdapter.this.updateComments(comments);
+                            ((WatchScreenActivity) context).runOnUiThread(() -> {
+                                commentViewModel.getCommentsForVideo(currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
+                                    if (comments != null) {
+                                        updateComments(comments);
+                                    } else {
+                                        updateComments(new ArrayList<>());
+                                    }
+                                    Toast.makeText(context, "Comment deleted successfully", Toast.LENGTH_SHORT).show();
+                                });
                             });
                         }
 
                         @Override
                         public void onError(Exception e) {
-                            Toast.makeText(context, "Failed to delete comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            ((WatchScreenActivity) context).runOnUiThread(() -> {
+                                Toast.makeText(context, "Failed to delete comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
                         }
                     });
                 })
                 .setNegativeButton("No", null)
-                .show();
+                .create();
+
+        dialog.setOnShowListener(dialogInterface -> {
+            Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+            if (positiveButton != null) {
+                positiveButton.setTextColor(context.getResources().getColor(R.color.button_text_color));
+                positiveButton.setBackgroundColor(context.getResources().getColor(R.color.button_color));
+            }
+
+            if (negativeButton != null) {
+                negativeButton.setTextColor(context.getResources().getColor(R.color.button_text_color));
+                negativeButton.setBackgroundColor(context.getResources().getColor(R.color.button_color));
+            }
+        });
+
+        dialog.show();
     }
+
+
+
+
 
     public void submitComment(String newCommentBody) {
         if (newCommentBody.isEmpty()) {
@@ -160,8 +207,9 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             return;
         }
 
-        CommentObj newComment = new CommentObj(currentVideo.getId(), currentUser.getUsername(), newCommentBody);
-        commentViewModel.createComment(currentUser.getId(), currentVideo.getId(), newComment, new RepositoryCallback<CommentObj>() {
+        CommentObj newComment = new CommentObj(null, currentVideo.getId(), currentUser.getUsername(), newCommentBody, currentUser.getProfilePicture(), currentUser.getId());
+
+        commentViewModel.createComment(newComment, new RepositoryCallback<CommentObj>() {
             @Override
             public void onSuccess(CommentObj result) {
                 commentViewModel.getCommentsForVideo(currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
@@ -208,6 +256,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             deleteComment = itemView.findViewById(R.id.deleteComment);
         }
     }
+
     private void openChannelActivity(String userId) {
         Intent intent = new Intent(context, ChannelActivity.class);
         intent.putExtra("userId", userId);

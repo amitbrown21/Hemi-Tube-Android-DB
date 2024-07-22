@@ -33,21 +33,53 @@ Our team started the development process by focusing on the website. We divided 
 ## Setup and Installation
 ### Website
 
-- Clone the repository: git clone https://github.com/amitbrown21/Hemi-Tube-DB
-- Install dependencies: npm install
-- Start the development server: npm start
-- Open the website in your browser at http://localhost:3000
-
+Clone the repository:
+   ```bash
+   git clone https://github.com/amitbrown21/Hemi-Tube-DB
+ ```
+Install dependencies:
+```bash
+npm install mongoose jsonwebtoken
+```
+Start the development server:
+  ```bash
+   npm start
+  ```
+  Then click 'y'
+ Open the website in your browser at
+   ```bash
+    http://localhost:3001
+   ```
 ### Android App
-
-- Clone the repository: git clone https://github.com/amitbrown21/Hemi-Tube-Android-DB
-- Open the project in Android Studio
-- Sync the project with Gradle files
-- Build and run the app on an Android device or emulator
+ Clone the repository:
+ ```bash
+ git clone https://github.com/amitbrown21/Hemi-Tube-Android-DB
+  ```
+ Open the terminal in '/Server' folder and enter the following
+  ```bash
+  npm i mongoose jsonwebtoken multer path
+  ```
+  Then go to '/Scripts' folder and enter:
+  ```bash
+  node ./uploadUsers.js
+  ```
+  Then 
+  ```bash
+  node ./uploadVideos.js
+  ```
+Go back to the '/Server' folder and start the server with:
+```bash
+node ./server.js
+```
+Open the project in Android Studio
+ 
+Sync the project with Gradle files
+ 
+Build and run the app on an Android device or emulator
 
 ---
 
 ### Contributors
- 
+
 [Shon Trubin](https://github.com/ShonTrubin)  
 [Amit Brounstine](https://github.com/amitbrown21)  

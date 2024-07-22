@@ -1,6 +1,8 @@
 package com.example.hemi_tube.viewmodel;
 
 import android.app.Application;
+import android.content.Context;
+
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import com.example.hemi_tube.entities.CommentObj;
@@ -20,15 +22,16 @@ public class CommentViewModel extends AndroidViewModel {
         return commentRepository.getCommentsForVideo(videoId);
     }
 
-    public void createComment(String userId, String videoId, CommentObj comment, RepositoryCallback<CommentObj> callback) {
-        commentRepository.createComment(userId, videoId, comment, callback);
+    public void createComment(CommentObj comment, RepositoryCallback<CommentObj> callback) {
+        commentRepository.createComment(comment, callback);
     }
 
     public void updateComment(String userId, String videoId, CommentObj comment, RepositoryCallback<CommentObj> callback) {
         commentRepository.updateComment(userId, videoId, comment, callback);
     }
 
-    public void deleteComment(String userId, String videoId, String commentId, RepositoryCallback<Void> callback) {
-        commentRepository.deleteComment(userId, videoId, commentId, callback);
+    public void deleteComment(String userId, String videoId, String commentId, Context context, RepositoryCallback<Void> callback) {
+        commentRepository.deleteComment(userId, videoId, commentId, context, callback);
     }
+
 }

@@ -6,7 +6,10 @@ const videosServices = {
   },
 
   getVideoById: async (id) => {
-    return await Video.findById(id).populate("owner", "username profilePicture");
+    return await Video.findById(id).populate(
+      "owner",
+      "username profilePicture"
+    );
   },
 
   createVideo: async (userId, videoData) => {
@@ -15,7 +18,13 @@ const videosServices = {
   },
 
   updateVideo: async (id, videoData) => {
-    return await Video.findByIdAndUpdate(id, videoData, { new: true });
+    console.log(`Updating video with ID: ${id}`);
+    console.log("Update data:", videoData);
+    const updatedVideo = await Video.findByIdAndUpdate(id, videoData, {
+      new: true,
+    });
+    console.log("Updated video:", updatedVideo);
+    return updatedVideo;
   },
 
   deleteVideo: async (id) => {
@@ -72,7 +81,10 @@ const videosServices = {
   },
 
   getVideosWithTopAndRandom: async () => {
-    const videos = await Video.find().populate("owner", "username profilePicture");
+    const videos = await Video.find().populate(
+      "owner",
+      "username profilePicture"
+    );
     const topVideos = videos.sort((a, b) => b.likes - a.likes).slice(0, 5);
     const otherVideos = videos.sort(() => 0.5 - Math.random()).slice(0, 10);
     return { topVideos, otherVideos };

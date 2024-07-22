@@ -8,11 +8,14 @@ import com.example.hemi_tube.database.AppDatabase;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.network.ApiService;
 import com.example.hemi_tube.network.RetrofitClient;
+import com.google.gson.Gson;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Response;
@@ -87,12 +90,42 @@ public class UserRepository {
         });
     }
 
-    public void updateUser(User user, final RepositoryCallback<User> callback) {
+    public void updateUser(User user, MultipartBody.Part profileImage, final RepositoryCallback<User> callback) {
         executor.execute(() -> {
             try {
-                Response<User> response = apiService.updateUser(user.getId(), user).execute();
+                // Prepare other parts
+                RequestBody firstNamePart = RequestBody.create(MultipartBody.FORM, user.getFirstName());
+                RequestBody lastNamePart = RequestBody.create(MultipartBody.FORM, user.getLastName());
+                RequestBody usernamePart = RequestBody.create(MultipartBody.FORM, user.getUsername());
+                RequestBody passwordPart = RequestBody.create(MultipartBody.FORM, user.getPassword());
+                RequestBody genderPart = RequestBody.create(MultipartBody.FORM, user.getGender());
+                RequestBody subscribersPart = RequestBody.create(MultipartBody.FORM, user.getSubscribers());
+
+                // Log the parts being sent
+                Log.d(TAG, "First Name Part: " + user.getFirstName());
+                Log.d(TAG, "Last Name Part: " + user.getLastName());
+                Log.d(TAG, "Username Part: " + user.getUsername());
+                Log.d(TAG, "Password Part: " + user.getPassword());
+                Log.d(TAG, "Gender Part: " + user.getGender());
+                Log.d(TAG, "Subscribers Part: " + user.getSubscribers());
+                Log.d(TAG, "Profile Image Part: " + profileImage.body().contentType().toString());
+
+                // Make the request
+                Response<User> response = apiService.updateUser(
+                        user.getId(), firstNamePart, lastNamePart, usernamePart, passwordPart, genderPart, profileImage, subscribersPart
+                ).execute();
+
+                // Log the response details
+                Log.d(TAG, "Response code: " + response.code());
+                Log.d(TAG, "Response message: " + response.message());
+                if (response.errorBody() != null) {
+                    Log.e(TAG, "Error body: " + response.errorBody().string());
+                }
+
                 if (response.isSuccessful() && response.body() != null) {
                     User updatedUser = response.body();
+                    // Set the id from the server response
+                    updatedUser.setId(updatedUser.getId() != null ? updatedUser.getId() : "");
                     userDao.update(updatedUser);
                     callback.onSuccess(updatedUser);
                     Log.d(TAG, "User updated successfully: " + updatedUser.getId());

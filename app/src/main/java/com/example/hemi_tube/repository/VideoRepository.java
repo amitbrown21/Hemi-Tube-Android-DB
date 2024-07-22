@@ -11,6 +11,7 @@ import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.network.ApiService;
 import com.example.hemi_tube.network.RetrofitClient;
 import com.example.hemi_tube.repository.RepositoryCallback;
+import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
@@ -28,6 +30,7 @@ public class VideoRepository {
     private VideoDao videoDao;
     private ApiService apiService;
     private Executor executor;
+    private Gson gson;
 
     public VideoRepository(Context context) {
         AppDatabase db = AppDatabase.getInstance(context);
@@ -72,22 +75,31 @@ public class VideoRepository {
         });
     }
 
-    public void uploadVideo(RequestBody userIdPart, RequestBody titlePart, RequestBody descriptionPart, MultipartBody.Part videoPart, MultipartBody.Part thumbnailPart, final RepositoryCallback<Video> callback) {
+    public void updateVideo(Video video, final RepositoryCallback<Video> callback) {
+        Log.d(TAG, "Updating video with ID: " + video.getId());
+        Log.d(TAG, "Video details: " + video.toString());
         executor.execute(() -> {
             try {
-                Response<Video> response = apiService.uploadVideo(userIdPart, titlePart, descriptionPart, videoPart, thumbnailPart).execute();
+                String userId = video.getOwner().getId(); // Get the owner ID
+                Log.d(TAG, "Updating video for user ID: " + userId);
+
+                // Make the API call using the Video object directly
+                Response<Video> response = apiService.updateVideo(userId, video.getId(), video).execute();
                 if (response.isSuccessful() && response.body() != null) {
-                    Video createdVideo = response.body();
-                    videoDao.insert(createdVideo);
-                    callback.onSuccess(createdVideo);
-                    Log.d(TAG, "Video uploaded successfully: " + createdVideo.getId());
+                    Video updatedVideo = response.body();
+                    videoDao.insert(updatedVideo); // Update the video in the local database
+                    callback.onSuccess(updatedVideo);
+                    Log.d(TAG, "Video updated successfully: " + updatedVideo.getId());
                 } else {
-                    callback.onError(new Exception("Failed to upload video"));
-                    Log.e(TAG, "Failed to upload video: " + response.message());
+                    callback.onError(new Exception("Failed to update video"));
+                    Log.e(TAG, "Failed to update video: " + response.message());
+                    if (response.errorBody() != null) {
+                        Log.e(TAG, "Error body: " + response.errorBody().string());
+                    }
                 }
             } catch (IOException e) {
                 callback.onError(e);
-                Log.e(TAG, "Error uploading video", e);
+                Log.e(TAG, "Error updating video", e);
             }
         });
     }

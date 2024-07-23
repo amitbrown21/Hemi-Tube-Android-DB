@@ -34,7 +34,12 @@ import com.example.hemi_tube.viewmodel.CommentViewModel;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
 
+import java.io.File;
 import java.util.List;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 
 public class WatchScreenActivity extends AppCompatActivity {
 
@@ -79,7 +84,14 @@ public class WatchScreenActivity extends AppCompatActivity {
 
     private void handleIntent(Intent intent) {
         String videoId = intent.getStringExtra("videoId");
-        String currentUserId = intent.getStringExtra("currentUserId");
+        String currentUserId = intent.getStringExtra("currentUserId"); // Retrieve currentUserId
+
+        // Log the currentUserId safely
+        if (currentUserId != null) {
+            Log.d("Shon in watch", currentUserId);
+        } else {
+            Log.d("Shon in watch", "currentUserId is null");
+        }
 
         videoViewModel.getVideoById(videoId).observe(this, video -> {
             if (video != null) {
@@ -95,8 +107,12 @@ public class WatchScreenActivity extends AppCompatActivity {
 
         if (currentUserId != null) {
             userViewModel.getUserById(currentUserId).observe(this, user -> {
-                currentUser = user;
-                updateUI(); // Update UI when currentUser is loaded
+                if (user != null) {
+                    currentUser = user;
+                    updateUI(); // Update UI when currentUser is loaded
+                } else {
+                    Log.d("WatchScreenActivity", "Failed to retrieve current user");
+                }
             });
         }
     }
@@ -366,32 +382,43 @@ public class WatchScreenActivity extends AppCompatActivity {
             if (newTitle.isEmpty() || newDescription.isEmpty() || thumbnailUri == null) {
                 Toast.makeText(this, "Please complete all fields", Toast.LENGTH_SHORT).show();
             } else {
-                currentVideo.setTitle(newTitle);
-                currentVideo.setDescription(newDescription);
-                currentVideo.setThumbnail(thumbnailUri.toString());
-                videoViewModel.updateVideo(currentVideo, new RepositoryCallback<Video>() {
-                    @Override
-                    public void onSuccess(Video result) {
-                        runOnUiThread(() -> {
-                            dialog.dismiss();
-                            updateUI();
-                            Toast.makeText(WatchScreenActivity.this, "Video updated successfully", Toast.LENGTH_SHORT).show();
-                        });
-                    }
+                RequestBody titlePart = RequestBody.create(MultipartBody.FORM, newTitle);
+                RequestBody descriptionPart = RequestBody.create(MultipartBody.FORM, newDescription);
 
-                    @Override
-                    public void onError(Exception e) {
-                        runOnUiThread(() -> {
-                            Toast.makeText(WatchScreenActivity.this, "Failed to update video: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        });
-                    }
-                });
+                String filePath = FileUtil.getPathFromUri(this, thumbnailUri);
+                if (filePath != null) {
+                    File thumbnailFile = new File(filePath);
+                    RequestBody thumbnailRequestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(thumbnailUri)), thumbnailFile);
+                    MultipartBody.Part thumbnailBody = MultipartBody.Part.createFormData("thumbnail", thumbnailFile.getName(), thumbnailRequestFile);
+
+                    videoViewModel.updateVideo(currentUser.getId(), currentVideo.getId(), titlePart, descriptionPart, thumbnailBody, new RepositoryCallback<Video>() {
+                        @Override
+                        public void onSuccess(Video result) {
+                            runOnUiThread(() -> {
+                                dialog.dismiss();
+                                updateUI();
+                                Toast.makeText(WatchScreenActivity.this, "Video updated successfully", Toast.LENGTH_SHORT).show();
+                            });
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            runOnUiThread(() -> {
+                                Toast.makeText(WatchScreenActivity.this, "Failed to update video: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    });
+                } else {
+                    Toast.makeText(this, "Failed to get image path", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
 
     private void selectThumbnail() {
-        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
         startActivityForResult(intent, PICK_THUMBNAIL_REQUEST);
     }
 

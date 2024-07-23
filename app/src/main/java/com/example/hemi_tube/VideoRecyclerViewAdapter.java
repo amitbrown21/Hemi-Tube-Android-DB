@@ -87,6 +87,7 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
 
         void bind(Video video) {
             title.setText(video.getTitle());
+            UserHolder userHolder = new UserHolder();
 
             userViewModel.getUserById(video.getOwner().getId()).observe((LifecycleOwner) context, owner -> {
                 if (owner != null) {
@@ -96,6 +97,9 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
 
                     loadImage(thumbnail, video.getThumbnail(), R.drawable.thumbnail_placeholder);
                     loadImage(profilePicture, owner.getProfilePicture(), R.drawable.profile);
+
+                    userHolder.user = owner;
+
                 }
             });
 
@@ -103,7 +107,7 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
                 incrementViews(video.getId());
                 Intent watchVideo = new Intent(context, WatchScreenActivity.class);
                 watchVideo.putExtra("videoId", video.getId());
-                watchVideo.putExtra("currentUserId", currentUser != null ? currentUser.getId() : null);
+                watchVideo.putExtra("currentUserId", userHolder.user != null ? userHolder.user.getId() : null); // Pass currentUserId
                 context.startActivity(watchVideo);
             });
         }
@@ -139,5 +143,9 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
                 }
             });
         }
+    }
+
+    class UserHolder {
+        User user;
     }
 }

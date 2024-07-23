@@ -90,8 +90,17 @@ public interface ApiService {
                             @Part MultipartBody.Part video,
                             @Part MultipartBody.Part thumbnail);
 
-    @PUT("users/{userId}/videos/{pid}")
-    Call<Video> updateVideo(@Path("userId") String userId, @Path("pid") String videoId, @Body Video video);
+
+    @Multipart
+    @PUT("users/{id}/videos/{pid}")
+    Call<Video> updateVideo(
+            @Path("id") String userId,
+            @Path("pid") String videoId,
+            @Part("title") RequestBody title,
+            @Part("description") RequestBody description,
+            @Part MultipartBody.Part thumbnail
+    );
+
 
     @DELETE("videos/{pid}")
     Call<Void> deleteVideo(@Path("pid") String videoId);

@@ -14,12 +14,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import com.google.gson.Gson;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Response;
 import retrofit2.http.Part;
+import okhttp3.MediaType;
 
 public class UserRepository {
     private static final String TAG = "UserRepository";

@@ -53,12 +53,15 @@ public class MainActivity extends AppCompatActivity {
     private static final int UPLOAD_VIDEO_REQUEST = 2;
     private static final int SIGN_UP_REQUEST = 3;
     public static final int WATCH_VIDEO_REQUEST = 4;
+    private static final int PICK_PROFILE_PICTURE_REQUEST = 5;
     private static final int MENU_CHANNEL_ID = View.generateViewId();
     private List<Video> videos = new ArrayList<>();
     private User currentUser;
 
     private Uri profilePictureUri;
-    private static final int PICK_PROFILE_PICTURE_REQUEST = 5;
+
+
+
 
     private VideoRecyclerViewAdapter videoAdapter;
     private RecyclerView videoRecyclerView;
@@ -337,7 +340,10 @@ public class MainActivity extends AppCompatActivity {
             if (itemId == R.id.menu_channel) {
                 openChannelPage();
                 return true;
-            } else if (itemId == R.id.menu_edit_user) {
+
+            }
+            else if (itemId == R.id.menu_edit_user) {
+
                 showEditUserDialog(); // Call the method to show the Edit User dialog
                 return true;
             } else if (itemId == R.id.menu_logout) {
@@ -352,7 +358,8 @@ public class MainActivity extends AppCompatActivity {
     private void openChannelPage() {
         if (currentUser != null) {
             Intent intent = new Intent(MainActivity.this, ChannelActivity.class);
-            intent.putExtra("userId", currentUser.getId());
+            intent.putExtra("currentUserId", currentUser.getId());
+            Log.d("Shon in main", currentUser.getId());
             startActivity(intent);
         }
     }
@@ -449,6 +456,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
 
     private void updateUI() {

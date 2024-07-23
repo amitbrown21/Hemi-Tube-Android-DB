@@ -36,8 +36,10 @@ public class VideoViewModel extends AndroidViewModel {
         videoRepository.createVideo(userId, video, callback);
     }
 
-    public void updateVideo(Video video, RepositoryCallback<Video> callback) {
-        videoRepository.updateVideo(video, callback);
+
+    public void updateVideo(String userId, String videoId, RequestBody title, RequestBody description, MultipartBody.Part thumbnail, RepositoryCallback<Video> callback) {
+        videoRepository.updateVideo(userId, videoId, title, description, thumbnail, callback);
+
     }
 
     public void deleteVideo(String videoId, RepositoryCallback<Void> callback) {

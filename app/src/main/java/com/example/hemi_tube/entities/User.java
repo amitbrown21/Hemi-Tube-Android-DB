@@ -6,6 +6,8 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -14,6 +16,7 @@ public class User implements Serializable {
     @PrimaryKey
     @NonNull
     @ColumnInfo(name = "id")
+    @SerializedName("_id")
     private String id;
     private String firstName;
     private String lastName;

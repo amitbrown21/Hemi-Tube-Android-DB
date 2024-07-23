@@ -2,6 +2,7 @@ package com.example.hemi_tube;
 
 import android.graphics.Outline;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.widget.ImageView;
@@ -31,6 +32,7 @@ public class ChannelActivity extends AppCompatActivity {
     private VideoViewModel videoViewModel;
 
     private User channelUser;
+    private User currentUser; // Add this line
     private boolean dataLoaded = false;
     private String currentProfilePicturePath;
 
@@ -42,11 +44,27 @@ public class ChannelActivity extends AppCompatActivity {
         initializeViews();
         setupViewModels();
 
-        String userId = getIntent().getStringExtra("userId");
+        String userId = getIntent().getStringExtra("currentUserId");
         if (userId == null || userId.isEmpty()) {
             finish();
             return;
         }
+
+        Log.d("Shon in channel", "user id recived: "+userId);
+
+        userViewModel.getUserById(userId).observe(this, user -> {
+            if (user != null) {
+                currentUser = user; // Set the currentUser
+                Log.d("Shon in channel", "user received: " + currentUser);
+                loadChannelData(userId); // Load channel data after setting currentUser
+            } else {
+                Log.d("Shon in channel", "Failed to retrieve current user");
+            }
+        });
+
+        //Log.d("Shon in channel", "user recived: "+currentUser);
+
+
 
         loadChannelData(userId);
     }

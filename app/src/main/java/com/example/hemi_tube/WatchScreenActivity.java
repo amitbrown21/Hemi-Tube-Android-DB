@@ -1,6 +1,7 @@
 package com.example.hemi_tube;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,6 +23,7 @@ import android.widget.ViewFlipper;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -342,25 +345,29 @@ public class WatchScreenActivity extends AppCompatActivity {
     }
 
     private void showEditDialog() {
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View editVideoView = inflater.inflate(R.layout.dialog_edit_video, null);
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setView(editVideoView);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_video, null);
+        builder.setView(dialogView);
 
-        EditText editTitle = editVideoView.findViewById(R.id.editTitle);
-        EditText editDescription = editVideoView.findViewById(R.id.editDescription);
-        ImageButton selectThumbnailButton = editVideoView.findViewById(R.id.selectThumbnailButton);
-        Button saveButton = editVideoView.findViewById(R.id.saveButton);
+        EditText editTitle = dialogView.findViewById(R.id.editTitle);
+        EditText editDescription = dialogView.findViewById(R.id.editDescription);
+        ImageButton selectThumbnailButton = dialogView.findViewById(R.id.selectThumbnailButton);
+        Button saveButton = dialogView.findViewById(R.id.saveButton);
+
+        // Add a cancel button to the layout
+        Button cancelButton = new Button(this);
+        cancelButton.setText("Cancel");
+        cancelButton.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.button_color)));
+        cancelButton.setTextColor(ContextCompat.getColor(this, R.color.button_text_color));
+        ((LinearLayout) dialogView).addView(cancelButton);
 
         editTitle.setText(currentVideo.getTitle());
         editDescription.setText(currentVideo.getDescription());
         thumbnailUri = Uri.parse(currentVideo.getThumbnail());
 
-        selectThumbnailButton.setOnClickListener(v -> selectThumbnail());
-
         AlertDialog dialog = builder.create();
-        dialog.show();
+
+        selectThumbnailButton.setOnClickListener(v -> selectThumbnail());
 
         saveButton.setOnClickListener(v -> {
             String newTitle = editTitle.getText().toString();
@@ -391,6 +398,10 @@ public class WatchScreenActivity extends AppCompatActivity {
                 });
             }
         });
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
     }
 
     private void selectThumbnail() {

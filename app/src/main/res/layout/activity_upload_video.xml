@@ -90,5 +90,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/selectThumbnailButton" />
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="335dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="104dp"
+        android:text="Click on Upload Once, it may take a couple of second to upload"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/uploadButton" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,16 +3,19 @@ package com.example.hemi_tube;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -21,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.ViewModelProvider;
@@ -30,11 +34,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
+import com.example.hemi_tube.repository.RepositoryCallback;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -42,9 +52,13 @@ public class MainActivity extends AppCompatActivity {
     private static final int UPLOAD_VIDEO_REQUEST = 2;
     private static final int SIGN_UP_REQUEST = 3;
     public static final int WATCH_VIDEO_REQUEST = 4;
+    private static final int PICK_PROFILE_PICTURE_REQUEST = 5;
     private static final int MENU_CHANNEL_ID = View.generateViewId();
     private List<Video> videos = new ArrayList<>();
     private User currentUser;
+
+    private Uri profilePictureUri;
+
 
     private VideoRecyclerViewAdapter videoAdapter;
     private RecyclerView videoRecyclerView;
@@ -279,6 +293,17 @@ public class MainActivity extends AppCompatActivity {
                     startActivityForResult(logInIntent, SIGN_IN_REQUEST);
                     break;
 
+                case PICK_PROFILE_PICTURE_REQUEST:
+                    profilePictureUri = data.getData();
+                    if (profilePictureUri != null) {
+                        grantUriPermission(getPackageName(), profilePictureUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        // Here, update the user profile picture URI
+                        if (currentUser != null) {
+                            currentUser.setProfilePicture(profilePictureUri.toString());
+                        }
+                    }
+                    break;
+
                 default:
                     Log.w(TAG, "Unknown request code: " + requestCode);
                     break;
@@ -312,6 +337,10 @@ public class MainActivity extends AppCompatActivity {
             if (itemId == R.id.menu_channel) {
                 openChannelPage();
                 return true;
+            }
+            else if (itemId == R.id.menu_edit_user) {
+                showEditUserDialog(); // Call the method to show the Edit User dialog
+                return true;
             } else if (itemId == R.id.menu_logout) {
                 logout();
                 return true;
@@ -324,7 +353,8 @@ public class MainActivity extends AppCompatActivity {
     private void openChannelPage() {
         if (currentUser != null) {
             Intent intent = new Intent(MainActivity.this, ChannelActivity.class);
-            intent.putExtra("userId", currentUser.getId());
+            intent.putExtra("currentUserId", currentUser.getId());
+            Log.d("Shon in main", currentUser.getId());
             startActivity(intent);
         }
     }
@@ -337,13 +367,105 @@ public class MainActivity extends AppCompatActivity {
         updateUI();
     }
 
+    private void showEditUserDialog() {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View editUserView = inflater.inflate(R.layout.dialog_edit_user, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(editUserView);
+
+        EditText editFirstName = editUserView.findViewById(R.id.editFirstName);
+        EditText editLastName = editUserView.findViewById(R.id.editLastName);
+        EditText editUsername = editUserView.findViewById(R.id.editUsername);
+        ImageButton selectProfilePictureButton = editUserView.findViewById(R.id.selectProfilePictureButton);
+        Button saveUserButton = editUserView.findViewById(R.id.saveUserButton);
+
+        // Populate fields with current user details
+        if (currentUser != null) {
+            editFirstName.setText(currentUser.getFirstName());
+            editLastName.setText(currentUser.getLastName());
+            editUsername.setText(currentUser.getUsername());
+            profilePictureUri = Uri.parse(currentUser.getProfilePicture());
+        }
+
+        selectProfilePictureButton.setOnClickListener(v -> selectProfilePicture());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        saveUserButton.setOnClickListener(v -> {
+            String newFirstName = editFirstName.getText().toString();
+            String newLastName = editLastName.getText().toString();
+            String newUsername = editUsername.getText().toString();
+
+            Log.d(TAG, "test");
+
+            if (newFirstName.isEmpty() || newLastName.isEmpty() || newUsername.isEmpty() || profilePictureUri == null) {
+                Toast.makeText(this, "Please complete all fields", Toast.LENGTH_SHORT).show();
+            } else {
+                currentUser.setFirstName(newFirstName);
+                currentUser.setLastName(newLastName);
+                currentUser.setUsername(newUsername);
+                currentUser.setProfilePicture(profilePictureUri.toString());
+
+                Log.d(TAG, "updates User : " +currentUser.toString());
+
+                String filePath = FileUtil.getPathFromUri(this, profilePictureUri);
+                if (filePath != null) {
+                    File profileImageFile = new File(filePath);
+                    RequestBody profileImageRequestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(profilePictureUri)), profileImageFile);
+                    MultipartBody.Part profileImageBody = MultipartBody.Part.createFormData("profileImage", profileImageFile.getName(), profileImageRequestFile);
+
+                    updateUser(currentUser, profileImageBody, dialog);
+                } else {
+                    Toast.makeText(MainActivity.this, "Failed to get image path", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void selectProfilePicture() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        startActivityForResult(intent, PICK_PROFILE_PICTURE_REQUEST);
+    }
+
+    private void updateUser(User user, MultipartBody.Part profileImageBody, AlertDialog dialog) {
+        Log.d(TAG, "new User: "+user.toString());
+        userViewModel.updateUser(user, profileImageBody, new RepositoryCallback<User>() {
+            @Override
+            public void onSuccess(User result) {
+                runOnUiThread(() -> {
+                    dialog.dismiss();
+                    updateUI();
+                    Toast.makeText(MainActivity.this, "User updated successfully", Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "Failed to update user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
     private void updateUI() {
         ImageButton logInButton = findViewById(R.id.user_menu_btn);
         if (isSignedIn && currentUser != null) {
             // Load user's profile picture
             String profilePicturePath = currentUser.getProfilePicture();
             if (profilePicturePath != null && !profilePicturePath.isEmpty()) {
-                String imageUrl = "http://10.0.2.2:3000/" + profilePicturePath.replace("\\", "/");
+                String imageUrl;
+                if (profilePicturePath.startsWith("content://")) {
+                    // If the profile picture is a URI, load it directly
+                    imageUrl = profilePicturePath;
+                } else {
+                    // Otherwise, assume it is a URL from the server
+                    imageUrl = "http://10.0.2.2:3000/" + profilePicturePath;
+                }
                 Glide.with(this)
                         .load(imageUrl)
                         .placeholder(R.drawable.profile)
@@ -368,4 +490,5 @@ public class MainActivity extends AppCompatActivity {
         }
         // Update any other UI elements that depend on the user's signed-in state
     }
+
 }

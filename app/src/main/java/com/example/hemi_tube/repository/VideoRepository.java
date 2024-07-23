@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData;
 
 import com.example.hemi_tube.dao.VideoDao;
 import com.example.hemi_tube.database.AppDatabase;
+import com.example.hemi_tube.entities.User;
 import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.network.ApiService;
 import com.example.hemi_tube.network.RetrofitClient;
@@ -88,6 +89,42 @@ public class VideoRepository {
             } catch (IOException e) {
                 callback.onError(e);
                 Log.e(TAG, "Error uploading video", e);
+            }
+        });
+    }
+
+    public void updateVideo(String userId, String videoId, RequestBody title, RequestBody description, MultipartBody.Part thumbnail, final RepositoryCallback<Video> callback) {
+        executor.execute(() -> {
+            try {
+                Log.d(TAG, "Updating video with ID: " + videoId);
+                Log.d(TAG, "User ID: " + userId);
+                Log.d(TAG, "Title: " + title.toString());
+                Log.d(TAG, "Description: " + description.toString());
+                if (thumbnail != null) {
+                    Log.d(TAG, "Thumbnail file name: " + thumbnail);
+                } else {
+                    Log.d(TAG, "No thumbnail provided");
+                }
+
+                Response<Video> response = apiService.updateVideo(userId, videoId, title, description, thumbnail).execute();
+                Log.d(TAG, "Response code: " + response.code());
+                Log.d(TAG, "Response message: " + response.message());
+
+                if (response.isSuccessful() && response.body() != null) {
+                    Video updatedVideo = response.body();
+                    videoDao.update(updatedVideo);
+                    callback.onSuccess(updatedVideo);
+                    Log.d(TAG, "Video updated successfully: " + updatedVideo.getId());
+                } else {
+                    callback.onError(new Exception("Failed to update video"));
+                    Log.e(TAG, "Failed to update video: " + response.message());
+                    if (response.errorBody() != null) {
+                        Log.e(TAG, "Error body: " + response.errorBody().string());
+                    }
+                }
+            } catch (IOException e) {
+                callback.onError(e);
+                Log.e(TAG, "Error updating video", e);
             }
         });
     }
@@ -175,25 +212,25 @@ public class VideoRepository {
     private void refreshVideos() {
         executor.execute(() -> {
             try {
-                Log.d(TAG, "Refreshing videos from server");
-                Response<List<Video>> response = apiService.getAllVideos().execute();
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Video> allVideos = response.body();
-                    Log.d(TAG, "Received videos: " + allVideos);
+                Log.d(TAG, "Fetching all users from server");
+                Response<List<User>> userResponse = apiService.getAllUsers().execute();
+                if (userResponse.isSuccessful() && userResponse.body() != null) {
+                    List<User> allUsers = userResponse.body();
+                    Log.d(TAG, "Received " + allUsers.size() + " users");
 
-                    if (!allVideos.isEmpty()) {
-                        videoDao.insertAll(allVideos);
-                        Log.d(TAG, "Videos refreshed successfully, count: " + allVideos.size());
-                    } else {
-                        Log.w(TAG, "No valid videos received from server");
+                    for (User user : allUsers) {
+                        if (user.getId() == null) {
+                            Log.d(TAG, "user: "+user.toString());
+                            Log.e(TAG, "User ID is null for user: " + user.getUsername());
+                        } else {
+                            refreshVideosForUser(user.getId());
+                        }
                     }
                 } else {
-                    Log.e(TAG, "Failed to refresh videos: " + response.message());
+                    Log.e(TAG, "Failed to fetch users: " + userResponse.message());
                 }
-            } catch (IOException e) {
-                Log.e(TAG, "Error refreshing videos", e);
             } catch (Exception e) {
-                Log.e(TAG, "Unexpected error refreshing videos", e);
+                Log.e(TAG, "Error fetching users", e);
             }
         });
     }

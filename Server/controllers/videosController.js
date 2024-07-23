@@ -5,12 +5,24 @@ const path = require("path");
 const videosController = {
   getAllVideos: async (req, res) => {
     try {
+      console.log("Fetching all videos from database...");
       const videos = await Video.find().populate(
         "owner",
-        "username profilePicture"
+        "_id username profilePicture"
       );
+
+      // Log each video received
+      if (videos && videos.length > 0) {
+        videos.forEach((video, index) => {
+          console.log(`Video ${index + 1}:`, video);
+        });
+      } else {
+        console.log("No videos found in the database.");
+      }
+
       res.json(videos);
     } catch (error) {
+      console.error("Error fetching all videos:", error); // Log error details
       res.status(500).json({ message: error.message });
     }
   },
@@ -70,10 +82,15 @@ const videosController = {
       const userId = req.user.userId; // Get the authenticated user's ID
       const videoId = req.params.pid;
 
+      console.log("Authenticated user ID:", userId);
+      console.log("Video ID to update:", videoId);
+
       const video = await videosServices.getVideoById(videoId);
       if (!video) {
         return res.status(404).json({ message: "Video not found" });
       }
+
+      console.log("Owner of the video:", video.owner.toString());
 
       // Check if the authenticated user is the owner of the video
       if (video.owner.toString() !== userId) {
@@ -85,6 +102,7 @@ const videosController = {
       const updatedVideo = await videosServices.updateVideo(videoId, req.body);
       res.json(updatedVideo);
     } catch (error) {
+      console.error("Error updating video:", error);
       res.status(400).json({ message: error.message });
     }
   },
@@ -171,16 +189,6 @@ const videosController = {
       const videos = await videosServices.getVideosWithTopAndRandom();
       res.json(videos);
     } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-  getAllVideos: async (req, res) => {
-    try {
-      const videos = await Video.find().populate("owner", "username");
-      res.json(videos);
-    } catch (error) {
-      console.error("Error fetching all videos:", error); // Log error details
       res.status(500).json({ message: error.message });
     }
   },

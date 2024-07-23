@@ -51,7 +51,12 @@ router.get("/:id/videos/:pid/comments", commentController.getCommentsByVideoId);
 // Protected routes
 router.get("/verify-token", authMiddleware, usersController.verifyToken);
 router.get("/", authMiddleware, usersController.getAllUsers);
-router.put("/:id", authMiddleware, usersController.updateUser);
+router.put(
+  "/:id",
+  authMiddleware,
+  upload.single("profileImage"),
+  usersController.updateUser
+);
 router.delete("/:id", authMiddleware, usersController.deleteUser);
 
 // Video routes under a user

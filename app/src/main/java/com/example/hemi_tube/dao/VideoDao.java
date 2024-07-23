@@ -8,6 +8,7 @@ import java.util.List;
 
 @Dao
 public interface VideoDao {
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Video video);
 
@@ -19,6 +20,9 @@ public interface VideoDao {
 
     @Delete
     void delete(Video video);
+
+    @Query("SELECT COUNT(*) FROM videos")
+    int getVideoCount();
 
     @Query("DELETE FROM videos WHERE id = :videoId")
     void deleteById(String videoId);

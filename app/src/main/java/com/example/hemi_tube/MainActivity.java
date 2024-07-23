@@ -37,6 +37,7 @@ import com.example.hemi_tube.entities.Video;
 import com.example.hemi_tube.repository.RepositoryCallback;
 import com.example.hemi_tube.viewmodel.UserViewModel;
 import com.example.hemi_tube.viewmodel.VideoViewModel;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -58,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     private User currentUser;
 
     private Uri profilePictureUri;
+
+
 
 
     private VideoRecyclerViewAdapter videoAdapter;
@@ -337,8 +340,10 @@ public class MainActivity extends AppCompatActivity {
             if (itemId == R.id.menu_channel) {
                 openChannelPage();
                 return true;
+
             }
             else if (itemId == R.id.menu_edit_user) {
+
                 showEditUserDialog(); // Call the method to show the Edit User dialog
                 return true;
             } else if (itemId == R.id.menu_logout) {
@@ -451,6 +456,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+
 
     private void updateUI() {
         ImageButton logInButton = findViewById(R.id.user_menu_btn);

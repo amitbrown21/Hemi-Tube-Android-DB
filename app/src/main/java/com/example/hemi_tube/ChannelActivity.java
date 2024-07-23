@@ -34,6 +34,7 @@ public class ChannelActivity extends AppCompatActivity {
     private User channelUser;
     private User currentUser; // Add this line
     private boolean dataLoaded = false;
+    private String currentProfilePicturePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,9 +94,13 @@ public class ChannelActivity extends AppCompatActivity {
         userViewModel.getUserById(userId).observe(this, user -> {
             if (user != null && !dataLoaded) {
                 channelUser = user;
+                currentProfilePicturePath = user.getProfilePicture();
                 updateUserUI(user);
                 loadUserVideos(userId);
                 dataLoaded = true;
+            } else if (user != null && !currentProfilePicturePath.equals(user.getProfilePicture())) {
+                currentProfilePicturePath = user.getProfilePicture();
+                updateProfilePicture(user.getProfilePicture());
             }
         });
     }
@@ -111,8 +116,10 @@ public class ChannelActivity extends AppCompatActivity {
     private void updateUserUI(User user) {
         usernameText.setText(user.getUsername());
         subscribersText.setText(String.format("%s subscribers", user.getSubscribers()));
+        updateProfilePicture(user.getProfilePicture());
+    }
 
-        String profilePicturePath = user.getProfilePicture();
+    private void updateProfilePicture(String profilePicturePath) {
         if (profilePicturePath != null && !profilePicturePath.isEmpty()) {
             String imageUrl = "http://10.0.2.2:3000/" + profilePicturePath.replace("\\", "/");
             Glide.with(this)

@@ -17,14 +17,11 @@ const videosServices = {
     return await video.save();
   },
 
-  updateVideo: async (id, videoData) => {
-    console.log(`Updating video with ID: ${id}`);
-    console.log("Update data:", videoData);
-    const updatedVideo = await Video.findByIdAndUpdate(id, videoData, {
+  updateVideo: async (videoId, updateData) => {
+    const video = await Video.findByIdAndUpdate(videoId, updateData, {
       new: true,
     });
-    console.log("Updated video:", updatedVideo);
-    return updatedVideo;
+    return video;
   },
 
   deleteVideo: async (id) => {

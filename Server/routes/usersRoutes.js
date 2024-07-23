@@ -69,7 +69,12 @@ router.post(
   ]),
   videosController.createVideo
 );
-router.put("/:id/videos/:pid", authMiddleware, videosController.updateVideo);
+router.put(
+  "/:id/videos/:pid",
+  authMiddleware,
+  upload.single("thumbnail"), // Handle thumbnail upload
+  videosController.updateVideo
+);
 router.delete("/:id/videos/:pid", authMiddleware, videosController.deleteVideo);
 
 // Comment routes under a video of a user

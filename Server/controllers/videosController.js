@@ -8,10 +8,9 @@ const videosController = {
       console.log("Fetching all videos from database...");
       const videos = await Video.find().populate(
         "owner",
-        "_id username profilePicture"
+        "username profilePicture"
       );
 
-      // Log each video received
       if (videos && videos.length > 0) {
         videos.forEach((video, index) => {
           console.log(`Video ${index + 1}:`, video);
@@ -79,27 +78,49 @@ const videosController = {
 
   updateVideo: async (req, res) => {
     try {
-      const userId = req.user.userId; // Get the authenticated user's ID
+      const userId = req.params.id; // Get the authenticated user's ID
       const videoId = req.params.pid;
+
+      console.log("Updating video with  user ID:", req.params.id);
 
       console.log("Authenticated user ID:", userId);
       console.log("Video ID to update:", videoId);
 
       const video = await videosServices.getVideoById(videoId);
       if (!video) {
+        console.log("Video not found:", videoId);
         return res.status(404).json({ message: "Video not found" });
       }
 
-      console.log("Owner of the video:", video.owner.toString());
+      console.log("video Owner", video.owner._id.toString());
 
-      // Check if the authenticated user is the owner of the video
-      if (video.owner.toString() !== userId) {
+      if (video.owner._id.toString() !== userId) {
+        console.log("User not authorized to edit video:", userId);
         return res
           .status(403)
           .json({ message: "You are not authorized to edit this video" });
       }
 
-      const updatedVideo = await videosServices.updateVideo(videoId, req.body);
+      const updateData = {
+        title: req.body.title,
+        description: req.body.description,
+      };
+
+      if (req.file) {
+        updateData.thumbnail = path
+          .normalize(req.file.path)
+          .replace(/\\/g, "/");
+        console.log("Thumbnail path:", updateData.thumbnail);
+      } else {
+        console.log("No thumbnail file provided");
+      }
+
+      console.log("Update data:", updateData);
+
+      const updatedVideo = await videosServices.updateVideo(
+        videoId,
+        updateData
+      );
       res.json(updatedVideo);
     } catch (error) {
       console.error("Error updating video:", error);

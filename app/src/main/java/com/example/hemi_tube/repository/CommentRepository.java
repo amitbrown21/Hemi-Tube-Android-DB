@@ -2,6 +2,8 @@ package com.example.hemi_tube.repository;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -107,18 +109,23 @@ public class CommentRepository {
     public void updateComment(String userId, String videoId, CommentObj comment, final RepositoryCallback<CommentObj> callback) {
         executor.execute(() -> {
             try {
-                Response<CommentObj> response = apiService.updateComment(userId, videoId, comment.getId(), comment).execute();
+                String token = getAuthToken();
+                if (token == null) {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError(new Exception("User is not authenticated")));
+                    return;
+                }
+                Response<CommentObj> response = apiService.updateComment(userId, videoId, comment.getId(), comment, "Bearer " + token).execute();
                 if (response.isSuccessful() && response.body() != null) {
                     CommentObj updatedComment = response.body();
                     commentDao.update(updatedComment);
-                    callback.onSuccess(updatedComment);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(updatedComment));
                     Log.d(TAG, "Comment updated successfully: " + updatedComment.getId());
                 } else {
-                    callback.onError(new Exception("Failed to update comment"));
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError(new Exception("Failed to update comment: " + response.message())));
                     Log.e(TAG, "Failed to update comment: " + response.message());
                 }
             } catch (IOException e) {
-                callback.onError(e);
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e));
                 Log.e(TAG, "Error updating comment", e);
             }
         });
@@ -127,17 +134,22 @@ public class CommentRepository {
     public void deleteComment(String userId, String videoId, String commentId, final RepositoryCallback<Void> callback) {
         executor.execute(() -> {
             try {
-                Response<Void> response = apiService.deleteComment(userId, videoId, commentId).execute();
+                String token = getAuthToken();
+                if (token == null) {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError(new Exception("User is not authenticated")));
+                    return;
+                }
+                Response<Void> response = apiService.deleteComment(userId, videoId, commentId, "Bearer " + token).execute();
                 if (response.isSuccessful()) {
                     commentDao.deleteById(commentId);
-                    callback.onSuccess(null);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(null));
                     Log.d(TAG, "Comment deleted successfully: " + commentId);
                 } else {
-                    callback.onError(new Exception("Failed to delete comment"));
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError(new Exception("Failed to delete comment: " + response.message())));
                     Log.e(TAG, "Failed to delete comment: " + response.message());
                 }
             } catch (IOException e) {
-                callback.onError(e);
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e));
                 Log.e(TAG, "Error deleting comment", e);
             }
         });

@@ -121,10 +121,17 @@ public interface ApiService {
     Call<CommentObj> getCommentById(@Path("id") String userId, @Path("pid") String videoId, @Path("commentId") String commentId);
 
     @PUT("users/{id}/videos/{pid}/comments/{commentId}")
-    Call<CommentObj> updateComment(@Path("id") String userId, @Path("pid") String videoId, @Path("commentId") String commentId, @Body CommentObj comment);
+    Call<CommentObj> updateComment(@Path("id") String userId,
+                                   @Path("pid") String videoId,
+                                   @Path("commentId") String commentId,
+                                   @Body CommentObj comment,
+                                   @Header("Authorization") String token);
 
     @DELETE("users/{id}/videos/{pid}/comments/{commentId}")
-    Call<Void> deleteComment(@Path("id") String userId, @Path("pid") String videoId, @Path("commentId") String commentId);
+    Call<Void> deleteComment(@Path("id") String userId,
+                             @Path("pid") String videoId,
+                             @Path("commentId") String commentId,
+                             @Header("Authorization") String token);
 
     // Additional classes for login
     class LoginRequest {

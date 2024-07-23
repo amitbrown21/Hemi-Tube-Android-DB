@@ -1,12 +1,14 @@
 package com.example.hemi_tube;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -89,54 +91,80 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         View dialogView = LayoutInflater.from(context).inflate(R.layout.edit_comment, null);
         builder.setView(dialogView);
 
-        TextView editText = dialogView.findViewById(R.id.edit_comment_text);
+        EditText editText = dialogView.findViewById(R.id.edit_comment_text);
+        Button confirmButton = dialogView.findViewById(R.id.confirm_edit_button);
+        Button cancelButton = dialogView.findViewById(R.id.cancel_edit_button);
+
         editText.setText(comment.getBody());
 
-        builder.setPositiveButton("Save", (dialog, which) -> {
+        AlertDialog dialog = builder.create();
+
+        confirmButton.setOnClickListener(v -> {
             String updatedText = editText.getText().toString();
             if (!updatedText.isEmpty()) {
                 comment.setBody(updatedText);
                 commentViewModel.updateComment(currentUser.getId(), currentVideo.getId(), comment, new RepositoryCallback<CommentObj>() {
                     @Override
                     public void onSuccess(CommentObj result) {
-                        notifyDataSetChanged();
+                        ((Activity) context).runOnUiThread(() -> {
+                            notifyDataSetChanged();
+                            Toast.makeText(context, "Comment updated successfully", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                        });
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        Toast.makeText(context, "Failed to update comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        ((Activity) context).runOnUiThread(() -> {
+                            Toast.makeText(context, "Failed to update comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
                     }
                 });
+            } else {
+                Toast.makeText(context, "Comment cannot be empty", Toast.LENGTH_SHORT).show();
             }
         });
 
-        builder.setNegativeButton("Cancel", null);
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
 
-        AlertDialog dialog = builder.create();
         dialog.show();
     }
 
     private void deleteComment(CommentObj comment) {
-        new AlertDialog.Builder(context)
-                .setTitle("Delete Comment")
-                .setMessage("Are you sure you want to delete this comment?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    commentViewModel.deleteComment(currentUser.getId(), currentVideo.getId(), comment.getId(), new RepositoryCallback<Void>() {
-                        @Override
-                        public void onSuccess(Void result) {
-                            commentViewModel.getCommentsForVideo(currentUser.getId(), currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
-                                CommentRecyclerViewAdapter.this.updateComments(comments);
-                            });
-                        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        View dialogView = LayoutInflater.from(context).inflate(R.layout.delete_comment_dialog, null);
+        builder.setView(dialogView);
 
-                        @Override
-                        public void onError(Exception e) {
-                            Toast.makeText(context, "Failed to delete comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
+        Button confirmButton = dialogView.findViewById(R.id.confirm_delete_button);
+        Button cancelButton = dialogView.findViewById(R.id.cancel_delete_button);
+
+        AlertDialog dialog = builder.create();
+
+        confirmButton.setOnClickListener(v -> {
+            commentViewModel.deleteComment(currentUser.getId(), currentVideo.getId(), comment.getId(), new RepositoryCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    ((Activity) context).runOnUiThread(() -> {
+                        commentViewModel.getCommentsForVideo(currentUser.getId(), currentVideo.getId()).observe((LifecycleOwner) context, comments -> {
+                            CommentRecyclerViewAdapter.this.updateComments(comments);
+                        });
+                        Toast.makeText(context, "Comment deleted successfully", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
                     });
-                })
-                .setNegativeButton("No", null)
-                .show();
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    ((Activity) context).runOnUiThread(() -> {
+                        Toast.makeText(context, "Failed to delete comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                }
+            });
+        });
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
     }
 
     public void submitComment(String newCommentBody) {
@@ -175,23 +203,22 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
     private void setProfilePicture(ImageView imageView, String picturePath) {
         if (picturePath == null || picturePath.isEmpty()) {
             imageView.setImageResource(R.drawable.profile);
-        } else if (picturePath.startsWith("http://") || picturePath.startsWith("https://")) {
-            Glide.with(context)
-                    .load(picturePath)
-                    .placeholder(R.drawable.profile)
-                    .error(R.drawable.profile)
-                    .into(imageView);
-        } else if (picturePath.startsWith("content://")) {
-            try {
-                imageView.setImageURI(Uri.parse(picturePath));
-            } catch (SecurityException e) {
-                Log.e("CommentRecyclerViewAdapter", "No access to content URI for profile picture", e);
-                imageView.setImageResource(R.drawable.profile);
-            }
-        } else {
-            int resourceId = context.getResources().getIdentifier(picturePath, "drawable", context.getPackageName());
-            imageView.setImageResource(resourceId != 0 ? resourceId : R.drawable.profile);
+            return;
         }
+
+        String imageUrl = picturePath;
+        if (!picturePath.startsWith("http://") && !picturePath.startsWith("https://")) {
+            imageUrl = "http://10.0.2.2:3000/" + picturePath.replace("\\", "/");
+        }
+
+        Glide.with(context)
+                .load(imageUrl)
+                .placeholder(R.drawable.profile)
+                .error(R.drawable.profile)
+                .circleCrop()  // This will make the image circular
+                .into(imageView);
+
+        Log.d("CommentAdapter", "Loading profile picture from: " + imageUrl);
     }
 
     static class CommentViewHolder extends RecyclerView.ViewHolder {

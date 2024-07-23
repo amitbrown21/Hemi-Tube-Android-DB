@@ -1,6 +1,8 @@
 package com.example.hemi_tube.viewmodel;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -59,13 +61,17 @@ public class CommentViewModel extends AndroidViewModel {
         commentRepository.updateComment(userId, videoId, comment, new RepositoryCallback<CommentObj>() {
             @Override
             public void onSuccess(CommentObj result) {
-                callback.onSuccess(result);
-                refreshComments(userId, videoId);
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onSuccess(result);
+                    refreshComments(userId, videoId);
+                });
             }
 
             @Override
             public void onError(Exception e) {
-                callback.onError(e);
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError(e);
+                });
             }
         });
     }
@@ -74,13 +80,17 @@ public class CommentViewModel extends AndroidViewModel {
         commentRepository.deleteComment(userId, videoId, commentId, new RepositoryCallback<Void>() {
             @Override
             public void onSuccess(Void result) {
-                callback.onSuccess(result);
-                refreshComments(userId, videoId);
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onSuccess(result);
+                    refreshComments(userId, videoId);
+                });
             }
 
             @Override
             public void onError(Exception e) {
-                callback.onError(e);
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError(e);
+                });
             }
         });
     }

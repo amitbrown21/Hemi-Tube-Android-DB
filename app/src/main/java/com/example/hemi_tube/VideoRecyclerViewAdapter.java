@@ -103,11 +103,13 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<VideoRecycler
                 }
             });
 
+
+
             thumbnail.setOnClickListener(v -> {
                 incrementViews(video.getId());
                 Intent watchVideo = new Intent(context, WatchScreenActivity.class);
                 watchVideo.putExtra("videoId", video.getId());
-                watchVideo.putExtra("currentUserId", userHolder.user != null ? userHolder.user.getId() : null); // Pass currentUserId
+                watchVideo.putExtra("currentUserId", currentUser != null ? currentUser.getId() : null); // Pass currentUserId
                 context.startActivity(watchVideo);
             });
         }

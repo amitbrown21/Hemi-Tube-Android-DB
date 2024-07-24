@@ -77,35 +77,6 @@ public class VideoRepository {
         });
     }
 
-    public void updateVideo(Video video, final RepositoryCallback<Video> callback) {
-        Log.d(TAG, "Updating video with ID: " + video.getId());
-        Log.d(TAG, "Video details: " + video.toString());
-        executor.execute(() -> {
-            try {
-                String userId = video.getOwner().getId(); // Get the owner ID
-                Log.d(TAG, "Updating video for user ID: " + userId);
-
-                // Make the API call using the Video object directly
-                Response<Video> response = apiService.updateVideo(userId, video.getId(), video).execute();
-                if (response.isSuccessful() && response.body() != null) {
-                    Video updatedVideo = response.body();
-                    videoDao.insert(updatedVideo); // Update the video in the local database
-                    callback.onSuccess(updatedVideo);
-                    Log.d(TAG, "Video updated successfully: " + updatedVideo.getId());
-                } else {
-                    callback.onError(new Exception("Failed to update video"));
-                    Log.e(TAG, "Failed to update video: " + response.message());
-                    if (response.errorBody() != null) {
-                        Log.e(TAG, "Error body: " + response.errorBody().string());
-                    }
-                }
-            } catch (IOException e) {
-                callback.onError(e);
-                Log.e(TAG, "Error updating video", e);
-            }
-        });
-    }
-
     public void updateVideo(String userId, String videoId, RequestBody title, RequestBody description, MultipartBody.Part thumbnail, final RepositoryCallback<Video> callback) {
         executor.execute(() -> {
             try {
@@ -225,7 +196,6 @@ public class VideoRepository {
     private void refreshVideos() {
         executor.execute(() -> {
             try {
-
                 Log.d(TAG, "Fetching all users from server");
                 Response<List<User>> userResponse = apiService.getAllUsers().execute();
                 if (userResponse.isSuccessful() && userResponse.body() != null) {
@@ -239,17 +209,12 @@ public class VideoRepository {
                         } else {
                             refreshVideosForUser(user.getId());
                         }
-
                     }
-                    videoDao.insertAll(allVideos);
-                    Log.d(TAG, "Videos inserted into local database");
                 } else {
                     Log.e(TAG, "Failed to fetch users: " + userResponse.message());
                 }
             } catch (Exception e) {
-
                 Log.e(TAG, "Error fetching users", e);
-
             }
         });
     }

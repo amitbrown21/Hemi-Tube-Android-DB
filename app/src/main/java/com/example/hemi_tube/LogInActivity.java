@@ -65,6 +65,13 @@ public class LogInActivity extends AppCompatActivity {
     }
 
     private void login(String username, String password) {
+
+        // Clear existing user data before logging in
+        SharedPreferences prefs = getSharedPreferences("AuthPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear();
+        editor.apply();
+
         userViewModel.login(username, password, new RepositoryCallback<ApiService.LoginResponse>() {
             @Override
             public void onSuccess(ApiService.LoginResponse result) {

@@ -350,8 +350,12 @@ public class WatchScreenActivity extends AppCompatActivity {
 
     private void setupEditButton() {
         Button editButton = findViewById(R.id.editButton);
-        editButton.setVisibility(currentUser != null && currentVideo != null && currentUser.getId().equals(currentVideo.getOwner().getId()) ? View.VISIBLE : View.GONE);
-        editButton.setOnClickListener(v -> showEditDialog());
+        if (currentUser != null && currentVideo != null && currentUser.getId().equals(currentVideo.getOwner().getId())) {
+            editButton.setVisibility(View.VISIBLE);
+            editButton.setOnClickListener(v -> showEditDialog());
+        } else {
+            editButton.setVisibility(View.GONE);
+        }
     }
 
     private void showEditDialog() {

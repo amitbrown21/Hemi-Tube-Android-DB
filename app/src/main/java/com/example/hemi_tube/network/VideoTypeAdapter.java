@@ -29,24 +29,8 @@ public class VideoTypeAdapter extends TypeAdapter<Video> {
                     video.setTitle(in.nextString());
                     break;
                 case "owner":
-                    in.beginObject();
-                    String ownerId = null;
-                    String ownerUsername = null;
-                    while (in.hasNext()) {
-                        switch (in.nextName()) {
-                            case "_id":
-                                ownerId = in.nextString();
-                                break;
-                            case "username":
-                                ownerUsername = in.nextString();
-                                break;
-                            default:
-                                in.skipValue();
-                                break;
-                        }
-                    }
-                    in.endObject();
-                    Video.Owner owner = new Video.Owner(ownerId, ownerUsername);
+                    String ownerId = in.nextString();
+                    Video.Owner owner = new Video.Owner(ownerId, null);
                     video.setOwner(owner);
                     break;
                 case "views":
